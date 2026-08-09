@@ -125,13 +125,15 @@ export default function Home() {
 
   useEffect(() => {
     if (!Data) {
-      setHorariosDisponiveisDoDia(HORARIOS_SEMANA);
+      setHorariosDisponiveisDoDia(
+        HORARIOS_SEMANA
+      );
       setHorário("");
       return;
     }
 
     const dataSelecionada =
-      new Date(Data + "T12:00:00");
+      new Date(`${Data}T12:00:00`);
 
     const diaDaSemana =
       dataSelecionada.getDay();
@@ -338,13 +340,15 @@ export default function Home() {
       // VERIFICAR SE O HORÁRIO JÁ ESTÁ OCUPADO
       // =================================================
 
-      const { data: horarioExistente, error: erroConsulta } =
-        await supabase
-          .from("Agendamentos")
-          .select("Horário")
-          .eq("Data", Data)
-          .eq("Colaborador", Colaborador)
-          .eq("Horário", Horário);
+      const {
+        data: horarioExistente,
+        error: erroConsulta,
+      } = await supabase
+        .from("Agendamentos")
+        .select("Horário")
+        .eq("Data", Data)
+        .eq("Colaborador", Colaborador)
+        .eq("Horário", Horário);
 
       if (erroConsulta) {
         console.error(
@@ -530,22 +534,22 @@ export default function Home() {
       // =================================================
 
       const mensagem =
-        ` *NOVO AGENDAMENTO RECEBIDO!* \n\n` +
-        ` *Cliente:* ${Nome}\n` +
-        ` *WhatsApp:* ${Telefone}\n` +
-        ` *Barbeiro:* ${Colaborador}\n\n` +
-        ` *SERVIÇOS:*\n` +
+        `*NOVO AGENDAMENTO RECEBIDO!*\n\n` +
+        `*Cliente:* ${Nome}\n` +
+        `*WhatsApp:* ${Telefone}\n` +
+        `*Barbeiro:* ${Colaborador}\n\n` +
+        `*SERVIÇOS:*\n` +
         Serviços.map(
           (servico) =>
             `• ${servico}`
         ).join("\n") +
         `\n\n` +
-        ` *Data:* ${Data}\n` +
-        ` *Horário:* ${Horário}\n\n` +
+        `*Data:* ${Data}\n` +
+        `*Horário:* ${Horário}\n\n` +
         `_Aguarde para confirmar!_`;
 
       alert(
-        "Agendamento realizado com sucesso! Clique em OK para confirmar com barbeiro."
+        "Agendamento realizado com sucesso! Clique em OK para confirmar com o barbeiro."
       );
 
       // =================================================
@@ -570,7 +574,6 @@ export default function Home() {
       setColaborador("");
       setData("");
       setHorariosOcupados([]);
-
     } catch (err) {
       console.error(
         "================================"
@@ -779,24 +782,39 @@ export default function Home() {
             <div className="mt-6 grid grid-cols-3 gap-2">
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">✂️</p>
+
+                <p className="text-lg">
+                  ✂️
+                </p>
+
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   ILIMITADOS
                 </p>
+
               </div>
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">💰</p>
+
+                <p className="text-lg">
+                  💰
+                </p>
+
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   ECONOMIZE
                 </p>
+
               </div>
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">👑</p>
+
+                <p className="text-lg">
+                  👑
+                </p>
+
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   EXCLUSIVO
                 </p>
+
               </div>
 
             </div>
