@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
 // =====================================================
@@ -19,21 +20,12 @@ const supabase = createClient(
 );
 
 // =====================================================
-// BARBEIROS
+// CONFIGURAÇÕES
 // =====================================================
 
-const BARBEIROS = [
-  {
-    id: "Sousa",
-    nome: "Barbeiro Sousa",
-    foto: "/sousa/sousa.jpeg",
-  },
-  {
-    id: "Jonas",
-    nome: "Barbeiro Jonas",
-    foto: "/jonas/jonas.jpeg",
-  },
-];
+const TABELA_AGENDAMENTOS = "Agendamentos";
+const TABELA_BARBEIROS = "barbeiros";
+const BUCKET_BARBEIROS = "barbeiros";
 
 // =====================================================
 // HORÁRIOS
@@ -72,7 +64,11 @@ const SERVICOS = [
   ["Barba", "R$ 10,00", "🧔"],
   ["Corte e Barba", "R$ 30,00", "🔥"],
   ["Sobrancelha", "R$ 10,00", "✨"],
-  ["Combo - Corte, Barba e Sobrancelha", "R$ 35,00", "👑"],
+  [
+    "Combo - Corte, Barba e Sobrancelha",
+    "R$ 35,00",
+    "👑",
+  ],
   ["Luzes", "R$ 80,00", "💈"],
   ["Progressiva", "R$ 80,00", "💇"],
   ["Pigmentação Cabelo", "R$ 20,00", "🎨"],
@@ -82,58 +78,335 @@ const SERVICOS = [
   ["Corte Feminino", "R$ 50,00", "💇‍♀️"],
 ];
 
+// =====================================================
+// GERAR URL DA FOTO
+// =====================================================
+
+function gerarUrlFoto(foto) {
+  if (!foto) {
+    return "";
+  }
+
+  let valor = String(foto).trim();
+
+  if (!valor) {
+    return "";
+  }
+
+  // ===================================================
+  // SE JÁ FOR UMA URL COMPLETA
+  // ===================================================
+
+  if (
+    valor.startsWith("http://") ||
+    valor.startsWith("https://")
+  ) {
+    return valor;
+  }
+
+  // ===================================================
+  // DECODIFICAR CASO NECESSÁRIO
+  // ===================================================
+
+  try {
+    valor = decodeURIComponent(valor);
+  } catch {
+    // mantém o valor original
+  }
+
+  // ===================================================
+  // REMOVER BARRAS INICIAIS
+  // ===================================================
+
+  valor = valor.replace(/^\/+/, "");
+
+  // ===================================================
+  // CASO TENHA SALVO URL COMPLETA DO STORAGE
+  // ===================================================
+
+  const marcadorPublico =
+    `/storage/v1/object/public/${BUCKET_BARBEIROS}/`;
+
+  const marcadorAutenticado =
+    `/storage/v1/object/authenticated/${BUCKET_BARBEIROS}/`;
+
+  if (valor.includes(marcadorPublico)) {
+    valor =
+      valor.split(marcadorPublico)[1] || "";
+  }
+
+  if (valor.includes(marcadorAutenticado)) {
+    valor =
+      valor.split(marcadorAutenticado)[1] || "";
+  }
+
+  // ===================================================
+  // CASO TENHA SALVO:
+  // barbeiros/foto.jpg
+  // ===================================================
+
+  const prefixoBucket =
+    `${BUCKET_BARBEIROS}/`;
+
+  if (valor.startsWith(prefixoBucket)) {
+    valor = valor.substring(
+      prefixoBucket.length
+    );
+  }
+
+  // ===================================================
+  // LIMPAR NOVAMENTE
+  // ===================================================
+
+  valor = valor.replace(/^\/+/, "");
+
+  if (!valor) {
+    return "";
+  }
+
+  // ===================================================
+  // CODIFICAR CADA PARTE DO CAMINHO
+  // ===================================================
+
+  const caminhoCodificado = valor
+    .split("/")
+    .map((parte) =>
+      encodeURIComponent(parte)
+    )
+    .join("/");
+
+  // ===================================================
+  // GERAR URL PÚBLICA DO SUPABASE
+  // ===================================================
+
+  const {
+    data,
+    error,
+  } = supabase.storage
+    .from(BUCKET_BARBEIROS)
+    .getPublicUrl(
+      caminhoCodificado
+    );
+
+  if (error) {
+    console.error(
+      "Erro ao gerar URL da foto:",
+      error
+    );
+
+    return "";
+  }
+
+  const urlFinal =
+    data?.publicUrl || "";
+
+  console.log("================================");
+  console.log("FOTO ORIGINAL:", foto);
+  console.log(
+    "CAMINHO FINAL:",
+    caminhoCodificado
+  );
+  console.log(
+    "URL FINAL:",
+    urlFinal
+  );
+  console.log("================================");
+
+  return urlFinal;
+}
+
+// =====================================================
+// COMPONENTE
+// =====================================================
+
 export default function Home() {
   // ===================================================
-  // DADOS DO CLIENTE
+  // CLIENTE
   // ===================================================
 
   const [Nome, setNome] = useState("");
-  const [Telefone, setTelefone] = useState("");
+  const [Telefone, setTelefone] =
+    useState("");
 
   // ===================================================
   // SERVIÇOS
   // ===================================================
 
-  const [Serviços, setServiços] = useState([]);
+  const [Serviços, setServiços] =
+    useState([]);
 
   // ===================================================
   // AGENDAMENTO
   // ===================================================
 
-  const [Colaborador, setColaborador] = useState("");
-  const [Data, setData] = useState("");
-  const [Horário, setHorário] = useState("");
+  const [Colaborador, setColaborador] =
+    useState("");
+
+  const [Data, setData] =
+    useState("");
+
+  const [Horário, setHorário] =
+    useState("");
 
   // ===================================================
-  // ESTADOS
+  // BARBEIROS
   // ===================================================
 
-  const [horariosOcupados, setHorariosOcupados] =
+  const [barbeiros, setBarbeiros] =
     useState([]);
 
-  const [carregando, setCarregando] =
-    useState(false);
+  const [
+    carregandoBarbeiros,
+    setCarregandoBarbeiros,
+  ] = useState(true);
+
+  // ===================================================
+  // HORÁRIOS
+  // ===================================================
+
+  const [
+    horariosOcupados,
+    setHorariosOcupados,
+  ] = useState([]);
 
   const [
     horariosDisponiveisDoDia,
     setHorariosDisponiveisDoDia,
   ] = useState(HORARIOS_SEMANA);
 
-  // =====================================================
+  // ===================================================
+  // ESTADOS
+  // ===================================================
+
+  const [carregando, setCarregando] =
+    useState(false);
+
+  // ===================================================
+  // BUSCAR BARBEIROS
+  // ===================================================
+
+  useEffect(() => {
+    async function carregarBarbeiros() {
+      setCarregandoBarbeiros(true);
+
+      try {
+        if (
+          !supabaseUrl ||
+          !supabaseAnonKey
+        ) {
+          console.error(
+            "Supabase não configurado."
+          );
+
+          setBarbeiros([]);
+          return;
+        }
+
+        const {
+          data,
+          error,
+        } = await supabase
+          .from(TABELA_BARBEIROS)
+          .select(
+            "id, nome, foto, whatsapp, ativo"
+          )
+          .eq("ativo", true)
+          .order("created_at", {
+            ascending: true,
+          });
+
+        if (error) {
+          console.error(
+            "Erro ao buscar barbeiros:",
+            error
+          );
+
+          setBarbeiros([]);
+          return;
+        }
+
+        console.log(
+          "BARBEIROS VINDOS DO SUPABASE:",
+          data
+        );
+
+        const barbeirosComFoto =
+          (data || []).map(
+            (barbeiro, index) => {
+              const fotoOriginal =
+                barbeiro?.foto
+                  ? String(
+                      barbeiro.foto
+                    ).trim()
+                  : "";
+
+              const fotoUrl =
+                gerarUrlFoto(
+                  fotoOriginal
+                );
+
+              console.log(
+                "BARBEIRO:",
+                barbeiro?.nome
+              );
+
+              console.log(
+                "FOTO NO BANCO:",
+                fotoOriginal
+              );
+
+              console.log(
+                "FOTO URL:",
+                fotoUrl
+              );
+
+              return {
+                ...barbeiro,
+                fotoUrl,
+                _key:
+                  barbeiro?.id ??
+                  `${barbeiro?.nome || "barbeiro"}-${index}`,
+              };
+            }
+          );
+
+        setBarbeiros(
+          barbeirosComFoto
+        );
+      } catch (error) {
+        console.error(
+          "Erro inesperado ao buscar barbeiros:",
+          error
+        );
+
+        setBarbeiros([]);
+      } finally {
+        setCarregandoBarbeiros(false);
+      }
+    }
+
+    carregarBarbeiros();
+  }, []);
+
+  // ===================================================
   // ALTERAR HORÁRIOS CONFORME O DIA
-  // =====================================================
+  // ===================================================
 
   useEffect(() => {
     if (!Data) {
       setHorariosDisponiveisDoDia(
         HORARIOS_SEMANA
       );
+
       setHorário("");
+
       return;
     }
 
     const dataSelecionada =
-      new Date(`${Data}T12:00:00`);
+      new Date(
+        `${Data}T12:00:00`
+      );
 
     const diaDaSemana =
       dataSelecionada.getDay();
@@ -151,9 +424,9 @@ export default function Home() {
     setHorário("");
   }, [Data]);
 
-  // =====================================================
+  // ===================================================
   // BUSCAR HORÁRIOS OCUPADOS
-  // =====================================================
+  // ===================================================
 
   useEffect(() => {
     async function buscarHorariosOcupados() {
@@ -163,11 +436,17 @@ export default function Home() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from("Agendamentos")
+        const {
+          data,
+          error,
+        } = await supabase
+          .from(TABELA_AGENDAMENTOS)
           .select("Horário")
           .eq("Data", Data)
-          .eq("Colaborador", Colaborador);
+          .eq(
+            "Colaborador",
+            Colaborador
+          );
 
         if (error) {
           console.error(
@@ -179,17 +458,18 @@ export default function Home() {
           return;
         }
 
-        if (data) {
-          setHorariosOcupados(
-            data
-              .map((item) => item["Horário"])
-              .filter(Boolean)
-          );
-        }
-      } catch (err) {
+        setHorariosOcupados(
+          (data || [])
+            .map(
+              (item) =>
+                item?.["Horário"]
+            )
+            .filter(Boolean)
+        );
+      } catch (error) {
         console.error(
-          "Erro ao buscar horários ocupados:",
-          err
+          "Erro ao buscar horários:",
+          error
         );
 
         setHorariosOcupados([]);
@@ -199,28 +479,37 @@ export default function Home() {
     buscarHorariosOcupados();
   }, [Data, Colaborador]);
 
-  // =====================================================
-  // SELECIONAR / DESSELECIONAR SERVIÇO
-  // =====================================================
+  // ===================================================
+  // SELECIONAR SERVIÇO
+  // ===================================================
 
-  const selecionarServico = (valor) => {
-    setServiços((servicosAtuais) => {
-      if (servicosAtuais.includes(valor)) {
-        return servicosAtuais.filter(
-          (servico) => servico !== valor
-        );
+  const selecionarServico = (
+    valor
+  ) => {
+    setServiços(
+      (servicosAtuais) => {
+        if (
+          servicosAtuais.includes(
+            valor
+          )
+        ) {
+          return servicosAtuais.filter(
+            (servico) =>
+              servico !== valor
+          );
+        }
+
+        return [
+          ...servicosAtuais,
+          valor,
+        ];
       }
-
-      return [
-        ...servicosAtuais,
-        valor,
-      ];
-    });
+    );
   };
 
-  // =====================================================
+  // ===================================================
   // ATUALIZAR HORÁRIOS
-  // =====================================================
+  // ===================================================
 
   const atualizarHorariosOcupados =
     async () => {
@@ -229,15 +518,19 @@ export default function Home() {
       }
 
       try {
-        const { data, error } =
-          await supabase
-            .from("Agendamentos")
-            .select("Horário")
-            .eq("Data", Data)
-            .eq(
-              "Colaborador",
-              Colaborador
-            );
+        const {
+          data,
+          error,
+        } = await supabase
+          .from(
+            TABELA_AGENDAMENTOS
+          )
+          .select("Horário")
+          .eq("Data", Data)
+          .eq(
+            "Colaborador",
+            Colaborador
+          );
 
         if (error) {
           console.error(
@@ -248,34 +541,78 @@ export default function Home() {
           return;
         }
 
-        if (data) {
-          setHorariosOcupados(
-            data
-              .map(
-                (item) =>
-                  item["Horário"]
-              )
-              .filter(Boolean)
-          );
-        }
-      } catch (err) {
+        setHorariosOcupados(
+          (data || [])
+            .map(
+              (item) =>
+                item?.["Horário"]
+            )
+            .filter(Boolean)
+        );
+      } catch (error) {
         console.error(
           "Erro ao atualizar horários:",
-          err
+          error
         );
       }
     };
 
-  // =====================================================
+  // ===================================================
+  // BARBEIRO SELECIONADO
+  // ===================================================
+
+  const barbeiroSelecionado =
+    barbeiros.find(
+      (barbeiro) =>
+        String(barbeiro.id) ===
+        String(Colaborador)
+    );
+
+  // ===================================================
+  // WHATSAPP DO BARBEIRO
+  // ===================================================
+
+  const abrirWhatsAppBarbeiro = (
+    barbeiro
+  ) => {
+    if (!barbeiro?.whatsapp) {
+      alert(
+        "Este barbeiro ainda não possui WhatsApp cadastrado."
+      );
+
+      return;
+    }
+
+    const numero =
+      String(
+        barbeiro.whatsapp
+      ).replace(/\D/g, "");
+
+    if (!numero) {
+      alert(
+        "O WhatsApp deste barbeiro não está válido."
+      );
+
+      return;
+    }
+
+    const mensagem =
+      `Olá ${barbeiro.nome}! Vim pelo site da Sousa Barbearia e gostaria de falar com você.`;
+
+    window.open(
+      `https://wa.me/${numero}?text=${encodeURIComponent(
+        mensagem
+      )}`,
+      "_blank"
+    );
+  };
+
+  // ===================================================
   // AGENDAR
-  // =====================================================
+  // ===================================================
 
   const agendar = async (e) => {
     e.preventDefault();
-
-    // ===================================================
-    // VALIDAÇÕES
-    // ===================================================
 
     if (!Nome.trim()) {
       alert("Informe seu nome.");
@@ -295,7 +632,9 @@ export default function Home() {
     }
 
     if (!Colaborador) {
-      alert("Selecione um barbeiro.");
+      alert(
+        "Selecione um barbeiro."
+      );
       return;
     }
 
@@ -305,7 +644,9 @@ export default function Home() {
     }
 
     if (!Horário) {
-      alert("Selecione um horário.");
+      alert(
+        "Selecione um horário."
+      );
       return;
     }
 
@@ -313,21 +654,12 @@ export default function Home() {
       return;
     }
 
-    // ===================================================
-    // VERIFICAR CONFIGURAÇÃO DO SUPABASE
-    // ===================================================
-
     if (
       !supabaseUrl ||
       !supabaseAnonKey
     ) {
-      console.error(
-        "Variáveis do Supabase não encontradas."
-      );
-
       alert(
-        "Erro de configuração do Supabase.\n\n" +
-          "Verifique o arquivo .env.local e reinicie o servidor."
+        "Erro de configuração do Supabase. Verifique o arquivo .env.local e reinicie o servidor."
       );
 
       return;
@@ -336,19 +668,27 @@ export default function Home() {
     setCarregando(true);
 
     try {
-      // =================================================
-      // VERIFICAR SE O HORÁRIO JÁ ESTÁ OCUPADO
-      // =================================================
+      // ===============================================
+      // VERIFICAR HORÁRIO
+      // ===============================================
 
       const {
         data: horarioExistente,
         error: erroConsulta,
       } = await supabase
-        .from("Agendamentos")
+        .from(
+          TABELA_AGENDAMENTOS
+        )
         .select("Horário")
         .eq("Data", Data)
-        .eq("Colaborador", Colaborador)
-        .eq("Horário", Horário);
+        .eq(
+          "Colaborador",
+          Colaborador
+        )
+        .eq(
+          "Horário",
+          Horário
+        );
 
       if (erroConsulta) {
         console.error(
@@ -357,7 +697,7 @@ export default function Home() {
         );
 
         alert(
-          "Não foi possível verificar a disponibilidade do horário.\n\n" +
+          "Não foi possível verificar a disponibilidade.\n\n" +
             erroConsulta.message
         );
 
@@ -379,89 +719,56 @@ export default function Home() {
         return;
       }
 
-      // =================================================
-      // TRANSFORMAR SERVIÇOS EM TEXTO
-      // =================================================
+      // ===============================================
+      // SERVIÇOS
+      // ===============================================
 
       const serviçosSelecionados =
         Serviços.join(" + ");
 
-      // =================================================
-      // OBJETO DO AGENDAMENTO
-      // =================================================
+      // ===============================================
+      // AGENDAMENTO
+      // ===============================================
 
       const agendamento = {
         Nome: Nome.trim(),
-        Telefone: Telefone.trim(),
-        Serviço: serviçosSelecionados,
-        Data: Data,
-        Horário: Horário,
-        Colaborador: Colaborador,
+        Telefone:
+          Telefone.trim(),
+        Serviço:
+          serviçosSelecionados,
+        Data,
+        Horário,
+        Colaborador,
       };
 
       console.log(
-        "================================"
+        "Agendamento:",
+        agendamento
       );
 
-      console.log(
-        "AGENDAMENTO QUE SERÁ ENVIADO:"
-      );
+      // ===============================================
+      // SALVAR
+      // ===============================================
 
-      console.log(agendamento);
-
-      console.log(
-        "================================"
-      );
-
-      // =================================================
-      // SALVAR NO SUPABASE
-      // =================================================
-
-      const { data, error } =
-        await supabase
-          .from("Agendamentos")
-          .insert([agendamento])
-          .select();
-
-      // =================================================
-      // TRATAMENTO DE ERRO
-      // =================================================
+      const {
+        error,
+      } = await supabase
+        .from(
+          TABELA_AGENDAMENTOS
+        )
+        .insert([
+          agendamento,
+        ]);
 
       if (error) {
         console.error(
-          "================================"
-        );
-
-        console.error(
-          "ERRO COMPLETO DO SUPABASE:"
-        );
-
-        console.error(
-          "Código:",
-          error.code
-        );
-
-        console.error(
-          "Mensagem:",
-          error.message
-        );
-
-        console.error(
-          "Detalhes:",
-          error.details
-        );
-
-        console.error(
-          "Hint:",
-          error.hint
-        );
-
-        console.error(
-          "================================"
+          "ERRO COMPLETO DO SUPABASE:",
+          error
         );
 
         if (
-          error.code === "23505"
+          error.code ===
+          "23505"
         ) {
           alert(
             "Esse horário acabou de ser ocupado. Escolha outro horário."
@@ -475,11 +782,11 @@ export default function Home() {
         }
 
         if (
-          error.code === "42501"
+          error.code ===
+          "42501"
         ) {
           alert(
-            "O Supabase bloqueou o cadastro.\n\n" +
-              "É necessário verificar as políticas RLS da tabela Agendamentos."
+            "O Supabase bloqueou o agendamento pela RLS.\n\nVerifique as políticas INSERT da tabela Agendamentos."
           );
 
           return;
@@ -497,47 +804,37 @@ export default function Home() {
         return;
       }
 
-      // =================================================
-      // SUCESSO
-      // =================================================
-
-      console.log(
-        "================================"
-      );
-
-      console.log(
-        "AGENDAMENTO SALVO COM SUCESSO!"
-      );
-
-      console.log(data);
-
-      console.log(
-        "================================"
-      );
-
-      // =================================================
-      // WHATSAPP DO BARBEIRO
-      // =================================================
+      // ===============================================
+      // WHATSAPP
+      // ===============================================
 
       let numeroDestino =
-        "559985289973";
+        barbeiroSelecionado?.whatsapp
+          ? String(
+              barbeiroSelecionado.whatsapp
+            ).replace(
+              /\D/g,
+              ""
+            )
+          : "";
 
-      if (
-        Colaborador === "Jonas"
-      ) {
+      if (!numeroDestino) {
         numeroDestino =
-          "5586999273849";
+          "559985289973";
       }
 
-      // =================================================
-      // MENSAGEM WHATSAPP
-      // =================================================
+      // ===============================================
+      // MENSAGEM
+      // ===============================================
 
       const mensagem =
         `*NOVO AGENDAMENTO RECEBIDO!*\n\n` +
         `*Cliente:* ${Nome}\n` +
         `*WhatsApp:* ${Telefone}\n` +
-        `*Barbeiro:* ${Colaborador}\n\n` +
+        `*Barbeiro:* ${
+          barbeiroSelecionado?.nome ||
+          Colaborador
+        }\n\n` +
         `*SERVIÇOS:*\n` +
         Serviços.map(
           (servico) =>
@@ -552,10 +849,6 @@ export default function Home() {
         "Agendamento realizado com sucesso! Clique em OK para confirmar com o barbeiro."
       );
 
-      // =================================================
-      // ABRIR WHATSAPP
-      // =================================================
-
       window.open(
         `https://wa.me/${numeroDestino}?text=${encodeURIComponent(
           mensagem
@@ -563,9 +856,9 @@ export default function Home() {
         "_blank"
       );
 
-      // =================================================
-      // LIMPAR FORMULÁRIO
-      // =================================================
+      // ===============================================
+      // LIMPAR
+      // ===============================================
 
       setHorário("");
       setNome("");
@@ -574,32 +867,23 @@ export default function Home() {
       setColaborador("");
       setData("");
       setHorariosOcupados([]);
-    } catch (err) {
-      console.error(
-        "================================"
-      );
-
+    } catch (error) {
       console.error(
         "ERRO CRÍTICO:",
-        err
-      );
-
-      console.error(
-        "================================"
+        error
       );
 
       alert(
-        "Erro crítico ao conectar com o Supabase.\n\n" +
-          "Abra o console do navegador (F12) para verificar o erro."
+        "Erro crítico ao conectar com o Supabase. Abra o console do navegador (F12) para verificar o erro."
       );
     } finally {
       setCarregando(false);
     }
   };
 
-  // =====================================================
+  // ===================================================
   // ASSINATURA
-  // =====================================================
+  // ===================================================
 
   const conhecerPlanos = () => {
     const mensagem =
@@ -613,24 +897,24 @@ export default function Home() {
     );
   };
 
-  // =====================================================
+  // ===================================================
   // DATA MÍNIMA
-  // =====================================================
+  // ===================================================
 
   const dataMinima =
-    new Date()
-      .toISOString()
-      .split("T")[0];
+    new Date().toLocaleDateString(
+      "en-CA"
+    );
 
-  // =====================================================
+  // ===================================================
   // TELA
-  // =====================================================
+  // ===================================================
 
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-white sm:px-6">
 
       {/* =================================================
-          EFEITOS DE FUNDO
+          FUNDO
       ================================================= */}
 
       <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
@@ -646,10 +930,17 @@ export default function Home() {
       <div className="relative z-10 mx-auto max-w-5xl">
 
         {/* =================================================
-            CABEÇALHO / LOGO
+            CABEÇALHO
         ================================================= */}
 
         <header className="relative mb-8 text-center">
+
+          <Link
+            href="/admin"
+            className="absolute right-0 top-0 z-20 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-black/60 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 backdrop-blur-sm transition hover:border-amber-500 hover:bg-amber-500/10 hover:text-amber-500 active:scale-95"
+          >
+            🔐 ADM
+          </Link>
 
           <div className="absolute left-1/2 top-[-30px] h-48 w-48 -translate-x-1/2 rounded-full bg-amber-500/20 blur-[80px]" />
 
@@ -674,13 +965,11 @@ export default function Home() {
           </p>
 
           <h1 className="mt-2 text-4xl font-black tracking-widest sm:text-5xl">
-
             SOUSA
 
             <span className="block bg-gradient-to-r from-amber-300 via-amber-500 to-yellow-600 bg-clip-text text-transparent">
               BARBEARIA
             </span>
-
           </h1>
 
           <div className="mx-auto mt-4 flex items-center justify-center gap-3">
@@ -730,13 +1019,11 @@ export default function Home() {
                 </p>
 
                 <h2 className="mt-2 text-3xl font-black">
-
                   CORTES
 
                   <span className="block bg-gradient-to-r from-amber-300 to-amber-600 bg-clip-text text-transparent">
                     ILIMITADOS
                   </span>
-
                 </h2>
 
               </div>
@@ -770,7 +1057,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={conhecerPlanos}
-                  className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 py-4 text-sm font-black tracking-wider text-black shadow-xl shadow-amber-500/20 transition hover:scale-[1.02] hover:from-amber-300 hover:to-yellow-500 active:scale-95"
+                  className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 py-4 text-sm font-black tracking-wider text-black shadow-xl shadow-amber-500/20 transition hover:scale-[1.02] active:scale-95"
                 >
                   CONHEÇA NOSSOS PLANOS →
                 </button>
@@ -782,7 +1069,6 @@ export default function Home() {
             <div className="mt-6 grid grid-cols-3 gap-2">
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-
                 <p className="text-lg">
                   ✂️
                 </p>
@@ -790,11 +1076,9 @@ export default function Home() {
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   ILIMITADOS
                 </p>
-
               </div>
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-
                 <p className="text-lg">
                   💰
                 </p>
@@ -802,11 +1086,9 @@ export default function Home() {
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   ECONOMIZE
                 </p>
-
               </div>
 
               <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-
                 <p className="text-lg">
                   👑
                 </p>
@@ -814,7 +1096,6 @@ export default function Home() {
                 <p className="mt-1 text-[9px] font-bold text-zinc-400">
                   EXCLUSIVO
                 </p>
-
               </div>
 
             </div>
@@ -864,23 +1145,27 @@ export default function Home() {
 
                 <input
                   type="text"
-                  placeholder="👤  Seu Nome Completo"
+                  placeholder="👤 Seu Nome Completo"
                   value={Nome}
                   onChange={(e) =>
-                    setNome(e.target.value)
+                    setNome(
+                      e.target.value
+                    )
                   }
-                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-500"
                   required
                 />
 
                 <input
                   type="tel"
-                  placeholder="📱  Seu WhatsApp com DDD"
+                  placeholder="📱 Seu WhatsApp com DDD"
                   value={Telefone}
                   onChange={(e) =>
-                    setTelefone(e.target.value)
+                    setTelefone(
+                      e.target.value
+                    )
                   }
-                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-500"
                   required
                 />
 
@@ -917,14 +1202,11 @@ export default function Home() {
               <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
 
                 <p className="text-center text-xs text-zinc-400">
-
                   💡 Você pode selecionar{" "}
-
                   <span className="font-black text-amber-500">
                     mais de um serviço
                   </span>
                   .
-
                 </p>
 
               </div>
@@ -933,7 +1215,6 @@ export default function Home() {
 
                 {SERVICOS.map(
                   ([nome, preco, icone]) => {
-
                     const valor =
                       `${nome} - ${preco}`;
 
@@ -953,8 +1234,8 @@ export default function Home() {
                         }
                         className={`relative rounded-xl border p-3 text-left transition-all active:scale-95 ${
                           selecionado
-                            ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
-                            : "border-zinc-800 bg-black/40 hover:border-amber-500/40 hover:bg-zinc-900"
+                            ? "border-amber-500 bg-amber-500/10"
+                            : "border-zinc-800 bg-black/40 hover:border-amber-500/40"
                         }`}
                       >
 
@@ -984,7 +1265,6 @@ export default function Home() {
               </div>
 
               {Serviços.length > 0 && (
-
                 <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
 
                   <div className="flex items-center justify-between">
@@ -1003,7 +1283,6 @@ export default function Home() {
 
                     {Serviços.map(
                       (servico) => (
-
                         <div
                           key={servico}
                           className="flex items-center justify-between rounded-lg border border-zinc-800 bg-black/40 px-3 py-2"
@@ -1020,20 +1299,18 @@ export default function Home() {
                                 servico
                               )
                             }
-                            className="ml-2 text-xs font-black text-red-400 hover:text-red-300"
+                            className="ml-2 text-xs font-black text-red-400"
                           >
                             ✕
                           </button>
 
                         </div>
-
                       )
                     )}
 
                   </div>
 
                 </div>
-
               )}
 
             </div>
@@ -1064,59 +1341,225 @@ export default function Home() {
 
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {carregandoBarbeiros ? (
 
-                {BARBEIROS.map(
-                  (barbeiro) => {
+                <div className="rounded-2xl border border-zinc-800 bg-black/40 p-8 text-center">
 
-                    const selecionado =
-                      Colaborador ===
-                      barbeiro.id;
+                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-800 border-t-amber-500" />
 
-                    return (
-                      <button
-                        key={barbeiro.id}
-                        type="button"
-                        onClick={() => {
-                          setColaborador(
-                            barbeiro.id
-                          );
+                  <p className="mt-3 text-xs text-zinc-500">
+                    Carregando barbeiros...
+                  </p>
 
-                          setHorário("");
-                        }}
-                        className={`relative rounded-2xl border p-4 transition-all active:scale-95 ${
-                          selecionado
-                            ? "border-amber-500 bg-amber-500/10 shadow-xl shadow-amber-500/10"
-                            : "border-zinc-800 bg-black/40 hover:border-amber-500/40"
-                        }`}
-                      >
+                </div>
 
-                        {selecionado && (
-                          <span className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-xs font-black text-black">
-                            ✓
-                          </span>
-                        )}
+              ) : barbeiros.length === 0 ? (
 
-                        <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-2 border-amber-500/40 bg-zinc-950 p-1">
+                <div className="rounded-2xl border border-dashed border-zinc-800 bg-black/40 p-8 text-center">
 
-                          <img
-                            src={barbeiro.foto}
-                            alt={barbeiro.nome}
-                            className="h-full w-full rounded-full object-cover"
-                          />
+                  <div className="text-4xl">
+                    💈
+                  </div>
+
+                  <p className="mt-3 text-sm font-bold text-zinc-400">
+                    Nenhum barbeiro disponível.
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <div
+                  className={`grid gap-3 ${
+                    barbeiros.length === 1
+                      ? "grid-cols-1 sm:max-w-sm"
+                      : barbeiros.length === 2
+                      ? "grid-cols-2"
+                      : "grid-cols-2 sm:grid-cols-3"
+                  }`}
+                >
+
+                  {barbeiros.map(
+                    (barbeiro) => {
+
+                      const selecionado =
+                        String(
+                          Colaborador
+                        ) ===
+                        String(
+                          barbeiro.id
+                        );
+
+                      return (
+                        <div
+                          key={
+                            barbeiro._key
+                          }
+                          className={`relative overflow-hidden rounded-2xl border transition-all ${
+                            selecionado
+                              ? "border-amber-500 bg-amber-500/10 shadow-xl shadow-amber-500/10"
+                              : "border-zinc-800 bg-black/40 hover:border-amber-500/40"
+                          }`}
+                        >
+
+                          {/* =================================
+                              SELECIONAR
+                          ================================= */}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setColaborador(
+                                String(
+                                  barbeiro.id
+                                )
+                              );
+
+                              setHorário(
+                                ""
+                              );
+                            }}
+                            className="relative block w-full p-3 text-left"
+                          >
+
+                            {selecionado && (
+                              <span className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-xs font-black text-black shadow-lg">
+                                ✓
+                              </span>
+                            )}
+
+                            {/* =================================
+                                FOTO
+                            ================================= */}
+
+                            <div className="mx-auto aspect-square w-full max-w-[180px] overflow-hidden rounded-full border-2 border-amber-500/40 bg-zinc-950 p-1">
+
+                              {barbeiro.fotoUrl ? (
+
+                                <img
+                                  src={
+                                    barbeiro.fotoUrl
+                                  }
+                                  alt={
+                                    barbeiro.nome ||
+                                    "Barbeiro"
+                                  }
+                                  className="block h-full w-full rounded-full object-cover"
+                                  loading="eager"
+                                  decoding="async"
+                                  referrerPolicy="no-referrer"
+                                  onLoad={(
+                                    e
+                                  ) => {
+                                    console.log(
+                                      "✅ FOTO CARREGADA:",
+                                      barbeiro.nome
+                                    );
+
+                                    console.log(
+                                      "URL:",
+                                      e.currentTarget
+                                        .src
+                                    );
+                                  }}
+                                  onError={(
+                                    e
+                                  ) => {
+                                    console.error(
+                                      "❌ ERRO AO CARREGAR FOTO:",
+                                      {
+                                        nome:
+                                          barbeiro.nome,
+                                        fotoBanco:
+                                          barbeiro.foto,
+                                        fotoUrl:
+                                          barbeiro.fotoUrl,
+                                        urlTentada:
+                                          e.currentTarget
+                                            .src,
+                                      }
+                                    );
+
+                                    e.currentTarget.style.display =
+                                      "none";
+
+                                    const pai =
+                                      e.currentTarget
+                                        .parentElement;
+
+                                    if (
+                                      pai &&
+                                      !pai.querySelector(
+                                        "[data-fallback]"
+                                      )
+                                    ) {
+                                      const fallback =
+                                        document.createElement(
+                                          "div"
+                                        );
+
+                                      fallback.setAttribute(
+                                        "data-fallback",
+                                        "true"
+                                      );
+
+                                      fallback.className =
+                                        "flex h-full w-full items-center justify-center rounded-full text-5xl";
+
+                                      fallback.textContent =
+                                        "💈";
+
+                                      pai.appendChild(
+                                        fallback
+                                      );
+                                    }
+                                  }}
+                                />
+
+                              ) : (
+
+                                <div className="flex h-full w-full items-center justify-center rounded-full text-5xl">
+                                  💈
+                                </div>
+
+                              )}
+
+                            </div>
+
+                            {/* =================================
+                                NOME
+                            ================================= */}
+
+                            <p className="mt-3 text-center text-sm font-black text-zinc-200">
+                              {barbeiro.nome}
+                            </p>
+
+                          </button>
+
+                          {/* =================================
+                              WHATSAPP
+                          ================================= */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              abrirWhatsAppBarbeiro(
+                                barbeiro
+                              )
+                            }
+                            className="mx-3 mb-3 flex w-[calc(100%-1.5rem)] items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 py-2.5 text-[10px] font-black uppercase tracking-wider text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
+                          >
+                            💬 Falar no WhatsApp
+                          </button>
 
                         </div>
+                      );
+                    }
+                  )}
 
-                        <p className="mt-3 text-center text-sm font-black text-zinc-200">
-                          {barbeiro.nome}
-                        </p>
+                </div>
 
-                      </button>
-                    );
-                  }
-                )}
-
-              </div>
+              )}
 
             </div>
 
@@ -1155,7 +1598,7 @@ export default function Home() {
                     e.target.value
                   )
                 }
-                className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none focus:border-amber-500"
                 required
               />
 
@@ -1165,90 +1608,90 @@ export default function Home() {
                 HORÁRIOS
             ================================================= */}
 
-            {Data && Colaborador && (
+            {Data &&
+              Colaborador && (
+                <div className="mb-8">
 
-              <div className="mb-8">
+                  <div className="mb-5 flex items-center gap-3">
 
-                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
+                      05
+                    </div>
 
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
-                    05
+                    <div>
+
+                      <p className="text-[9px] uppercase tracking-widest text-amber-500">
+                        Último passo
+                      </p>
+
+                      <h2 className="text-lg font-black">
+                        Escolha o horário
+                      </h2>
+
+                    </div>
+
                   </div>
 
-                  <div>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
 
-                    <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                      Último passo
-                    </p>
+                    {horariosDisponiveisDoDia.map(
+                      (hora) => {
 
-                    <h2 className="text-lg font-black">
-                      Escolha o horário
-                    </h2>
+                        const estaOcupado =
+                          horariosOcupados.includes(
+                            hora
+                          );
 
-                  </div>
+                        const selecionado =
+                          Horário ===
+                          hora;
 
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-
-                  {horariosDisponiveisDoDia.map(
-                    (hora) => {
-
-                      const estaOcupado =
-                        horariosOcupados.includes(
-                          hora
+                        return (
+                          <button
+                            key={hora}
+                            type="button"
+                            disabled={
+                              estaOcupado
+                            }
+                            onClick={() =>
+                              setHorário(
+                                hora
+                              )
+                            }
+                            className={`rounded-xl border py-3 text-sm font-black transition-all ${
+                              estaOcupado
+                                ? "cursor-not-allowed border-zinc-900 bg-black text-zinc-700 line-through"
+                                : selecionado
+                                ? "border-amber-500 bg-gradient-to-r from-amber-400 to-yellow-600 text-black shadow-lg"
+                                : "border-zinc-800 bg-black/40 text-zinc-300 hover:border-amber-500 hover:text-amber-500"
+                            }`}
+                          >
+                            {hora}
+                          </button>
                         );
+                      }
+                    )}
 
-                      const selecionado =
-                        Horário === hora;
+                  </div>
 
-                      return (
-                        <button
-                          key={hora}
-                          type="button"
-                          disabled={
-                            estaOcupado
-                          }
-                          onClick={() =>
-                            setHorário(
-                              hora
-                            )
-                          }
-                          className={`rounded-xl border py-3 text-sm font-black transition-all ${
-                            estaOcupado
-                              ? "cursor-not-allowed border-zinc-900 bg-black text-zinc-700 line-through"
-                              : selecionado
-                              ? "border-amber-500 bg-gradient-to-r from-amber-400 to-yellow-600 text-black shadow-lg shadow-amber-500/20"
-                              : "border-zinc-800 bg-black/40 text-zinc-300 hover:border-amber-500 hover:text-amber-500"
-                          }`}
-                        >
-                          {hora}
-                        </button>
-                      );
-                    }
-                  )}
+                  <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-zinc-500">
+
+                    <span>
+                      🟨 Disponível
+                    </span>
+
+                    <span>
+                      🟨 Selecionado
+                    </span>
+
+                    <span>
+                      ⬛ Ocupado
+                    </span>
+
+                  </div>
 
                 </div>
-
-                <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-zinc-500">
-
-                  <span>
-                    🟨 Disponível
-                  </span>
-
-                  <span>
-                    🟨 Selecionado
-                  </span>
-
-                  <span>
-                    ⬛ Ocupado
-                  </span>
-
-                </div>
-
-              </div>
-
-            )}
+              )}
 
             {/* =================================================
                 RESUMO
@@ -1277,14 +1720,14 @@ export default function Home() {
 
                         {Serviços.map(
                           (servico) => (
-
                             <p
-                              key={servico}
+                              key={
+                                servico
+                              }
                               className="text-xs font-bold text-zinc-200"
                             >
                               • {servico}
                             </p>
-
                           )
                         )}
 
@@ -1299,7 +1742,8 @@ export default function Home() {
                       </p>
 
                       <p className="mt-1 text-xs font-bold text-zinc-200">
-                        {Colaborador}
+                        {barbeiroSelecionado?.nome ||
+                          Colaborador}
                       </p>
 
                     </div>
@@ -1331,7 +1775,6 @@ export default function Home() {
                   </div>
 
                 </div>
-
               )}
 
             {/* =================================================
@@ -1345,15 +1788,13 @@ export default function Home() {
                 Serviços.length === 0 ||
                 !Horário
               }
-              className="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 py-5 text-sm font-black tracking-widest text-black shadow-xl shadow-amber-500/20 transition-all hover:scale-[1.01] hover:shadow-amber-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:bg-none disabled:text-zinc-600 disabled:shadow-none"
+              className="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 py-5 text-sm font-black tracking-widest text-black shadow-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:bg-none disabled:text-zinc-600 disabled:shadow-none"
             >
-
               {carregando
                 ? "SALVANDO..."
                 : Horário
                 ? "CONFIRMAR AGENDAMENTO →"
                 : "SELECIONE O HORÁRIO"}
-
             </button>
 
           </form>
@@ -1384,9 +1825,8 @@ export default function Home() {
               href="https://instagram.com/sousabarbearia13"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-pink-500/50 hover:bg-pink-500/5"
+              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-pink-500/50"
             >
-
               <div className="text-2xl">
                 📸
               </div>
@@ -1394,16 +1834,14 @@ export default function Home() {
               <p className="mt-2 text-[10px] font-black text-zinc-300">
                 INSTAGRAM
               </p>
-
             </a>
 
             <a
               href="https://wa.me/559985289973"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-green-500/50 hover:bg-green-500/5"
+              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-green-500/50"
             >
-
               <div className="text-2xl">
                 💬
               </div>
@@ -1411,7 +1849,6 @@ export default function Home() {
               <p className="mt-2 text-[10px] font-black text-zinc-300">
                 WHATSAPP
               </p>
-
             </a>
 
           </div>
@@ -1485,17 +1922,16 @@ export default function Home() {
           </div>
 
           <p className="text-[10px] font-bold tracking-[0.35em] text-amber-500">
-            SOUSA BARBEARIA
+            Loureiro.Co (86 9 9927 3849)
           </p>
 
           <p className="mt-2 text-[9px] text-zinc-600">
-            Agendamento online
+            Sistemas de Gestão e Cybersegurança
           </p>
 
         </footer>
 
       </div>
-
     </main>
   );
 }
