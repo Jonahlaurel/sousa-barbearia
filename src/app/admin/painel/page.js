@@ -31,11 +31,10 @@ export default function PainelAdmin() {
   const [carregando, setCarregando] = useState(true);
 
   // ===================================================
-  // ABA ATUAL
+  // ABA
   // ===================================================
 
-  const [abaAtual, setAbaAtual] =
-    useState("agendamentos");
+  const [abaAtual, setAbaAtual] = useState("agendamentos");
 
   // ===================================================
   // AGENDAMENTOS
@@ -44,49 +43,27 @@ export default function PainelAdmin() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [carregandoAgendamentos, setCarregandoAgendamentos] =
     useState(false);
-
-  const [erroAgendamentos, setErroAgendamentos] =
-    useState("");
+  const [erroAgendamentos, setErroAgendamentos] = useState("");
 
   const [
     mostrarFormularioAgendamento,
     setMostrarFormularioAgendamento,
   ] = useState(false);
 
-  const [
-    editandoAgendamento,
-    setEditandoAgendamento,
-  ] = useState(null);
+  const [editandoAgendamento, setEditandoAgendamento] = useState(null);
 
-  const [nomeAgendamento, setNomeAgendamento] =
+  const [nomeAgendamento, setNomeAgendamento] = useState("");
+  const [telefoneAgendamento, setTelefoneAgendamento] = useState("");
+  const [servicoAgendamento, setServicoAgendamento] = useState("");
+  const [dataAgendamento, setDataAgendamento] = useState("");
+  const [horarioAgendamento, setHorarioAgendamento] = useState("");
+  const [colaboradorAgendamento, setColaboradorAgendamento] =
     useState("");
+  const [statusAgendamento, setStatusAgendamento] =
+    useState("pendente");
 
-  const [telefoneAgendamento, setTelefoneAgendamento] =
-    useState("");
-
-  const [servicoAgendamento, setServicoAgendamento] =
-    useState("");
-
-  const [dataAgendamento, setDataAgendamento] =
-    useState("");
-
-  const [horarioAgendamento, setHorarioAgendamento] =
-    useState("");
-
-  const [
-    colaboradorAgendamento,
-    setColaboradorAgendamento,
-  ] = useState("");
-
-  const [
-    statusAgendamento,
-    setStatusAgendamento,
-  ] = useState("pendente");
-
-  const [
-    salvandoAgendamento,
-    setSalvandoAgendamento,
-  ] = useState(false);
+  const [salvandoAgendamento, setSalvandoAgendamento] =
+    useState(false);
 
   // ===================================================
   // CLIENTES
@@ -96,66 +73,43 @@ export default function PainelAdmin() {
   const [carregandoClientes, setCarregandoClientes] =
     useState(false);
 
-  const [pesquisaCliente, setPesquisaCliente] =
-    useState("");
+  const [pesquisaCliente, setPesquisaCliente] = useState("");
 
   const [mostrarFormularioCliente, setMostrarFormularioCliente] =
     useState(false);
 
-  const [editandoCliente, setEditandoCliente] =
-    useState(null);
+  const [editandoCliente, setEditandoCliente] = useState(null);
 
-  const [nomeCliente, setNomeCliente] =
-    useState("");
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [telefoneCliente, setTelefoneCliente] = useState("");
 
-  const [telefoneCliente, setTelefoneCliente] =
-    useState("");
-
-  const [salvandoCliente, setSalvandoCliente] =
-    useState(false);
+  const [salvandoCliente, setSalvandoCliente] = useState(false);
 
   // ===================================================
   // ASSINANTES
   // ===================================================
 
   const [assinantes, setAssinantes] = useState([]);
-
   const [carregandoAssinantes, setCarregandoAssinantes] =
     useState(false);
 
-  const [pesquisaAssinante, setPesquisaAssinante] =
-    useState("");
+  const [pesquisaAssinante, setPesquisaAssinante] = useState("");
 
   const [
     mostrarFormularioAssinante,
     setMostrarFormularioAssinante,
   ] = useState(false);
 
-  const [
-    editandoAssinante,
-    setEditandoAssinante,
-  ] = useState(null);
+  const [editandoAssinante, setEditandoAssinante] = useState(null);
 
-  const [nomeAssinante, setNomeAssinante] =
-    useState("");
-
-  const [telefoneAssinante, setTelefoneAssinante] =
-    useState("");
-
-  const [planoAssinante, setPlanoAssinante] =
-    useState("Mensal");
-
-  const [valorAssinante, setValorAssinante] =
-    useState("");
-
+  const [nomeAssinante, setNomeAssinante] = useState("");
+  const [telefoneAssinante, setTelefoneAssinante] = useState("");
+  const [planoAssinante, setPlanoAssinante] = useState("Mensal");
+  const [valorAssinante, setValorAssinante] = useState("");
   const [dataInicioAssinante, setDataInicioAssinante] =
     useState("");
-
-  const [
-    dataVencimentoAssinante,
-    setDataVencimentoAssinante,
-  ] = useState("");
-
+  const [dataVencimentoAssinante, setDataVencimentoAssinante] =
+    useState("");
   const [statusAssinante, setStatusAssinante] =
     useState("ativo");
 
@@ -163,12 +117,14 @@ export default function PainelAdmin() {
     useState(false);
 
   // ===================================================
-  // CONFIGURAÇÃO SUPABASE
+  // CONFIGURAÇÃO
   // ===================================================
 
   useEffect(() => {
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("Supabase não configurado.");
+      console.error(
+        "Supabase não configurado. Verifique o .env.local"
+      );
     }
   }, []);
 
@@ -252,10 +208,7 @@ export default function PainelAdmin() {
     setErroAgendamentos("");
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("Agendamentos")
         .select(
           '"ID", "Nome", "Serviço", "Data", "Horário", "Telefone", "Colaborador", "status"'
@@ -268,11 +221,13 @@ export default function PainelAdmin() {
         });
 
       if (error) {
-        console.error(error);
-        setAgendamentos([]);
-        setErroAgendamentos(
-          error.message
+        console.error(
+          "Erro ao buscar agendamentos:",
+          error
         );
+
+        setAgendamentos([]);
+        setErroAgendamentos(error.message);
         return;
       }
 
@@ -303,10 +258,7 @@ export default function PainelAdmin() {
     setCarregandoClientes(true);
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("clientes")
         .select(
           "id, nome, telefone, created_at"
@@ -316,7 +268,10 @@ export default function PainelAdmin() {
         });
 
       if (error) {
-        console.error(error);
+        console.error(
+          "Erro ao carregar clientes:",
+          error
+        );
 
         alert(
           "Erro ao carregar clientes.\n\n" +
@@ -350,10 +305,7 @@ export default function PainelAdmin() {
     setCarregandoAssinantes(true);
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("assinantes")
         .select(
           "id, nome, telefone, plano, valor, data_inicio, data_vencimento, status, created_at"
@@ -409,21 +361,20 @@ export default function PainelAdmin() {
   useEffect(() => {
     if (!usuario || !supabase) return;
 
-    const canal =
-      supabase
-        .channel("agendamentos-admin")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "Agendamentos",
-          },
-          () => {
-            buscarAgendamentos();
-          }
-        )
-        .subscribe();
+    const canal = supabase
+      .channel("agendamentos-admin")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "Agendamentos",
+        },
+        () => {
+          buscarAgendamentos();
+        }
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(canal);
@@ -437,21 +388,20 @@ export default function PainelAdmin() {
   useEffect(() => {
     if (!usuario || !supabase) return;
 
-    const canal =
-      supabase
-        .channel("assinantes-admin")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "assinantes",
-          },
-          () => {
-            buscarAssinantes();
-          }
-        )
-        .subscribe();
+    const canal = supabase
+      .channel("assinantes-admin")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "assinantes",
+        },
+        () => {
+          buscarAssinantes();
+        }
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(canal);
@@ -481,9 +431,8 @@ export default function PainelAdmin() {
   // ===================================================
 
   function editarAgendamento(agendamento) {
-    if (!agendamento) return;
-
     if (
+      !agendamento ||
       agendamento.ID === null ||
       agendamento.ID === undefined ||
       agendamento.ID === ""
@@ -589,31 +538,21 @@ export default function PainelAdmin() {
     try {
       const dados = {
         Nome: nomeAgendamento.trim(),
-        Telefone:
-          telefoneAgendamento.trim(),
-        Serviço:
-          servicoAgendamento.trim(),
+        Telefone: telefoneAgendamento.trim(),
+        Serviço: servicoAgendamento.trim(),
         Data: dataAgendamento,
         Horário: horarioAgendamento,
         Colaborador:
-          colaboradorAgendamento.trim() ||
-          null,
+          colaboradorAgendamento.trim() || null,
         status:
-          statusAgendamento ||
-          "pendente",
+          statusAgendamento || "pendente",
       };
 
       if (editandoAgendamento) {
-        const {
-          data,
-          error,
-        } = await supabase
+        const { data, error } = await supabase
           .from("Agendamentos")
           .update(dados)
-          .eq(
-            "ID",
-            editandoAgendamento.ID
-          )
+          .eq("ID", editandoAgendamento.ID)
           .select();
 
         if (error) {
@@ -635,9 +574,7 @@ export default function PainelAdmin() {
           "Agendamento atualizado!"
         );
       } else {
-        const {
-          error,
-        } = await supabase
+        const { error } = await supabase
           .from("Agendamentos")
           .insert([dados]);
 
@@ -655,6 +592,7 @@ export default function PainelAdmin() {
       }
 
       cancelarFormularioAgendamento();
+
       await buscarAgendamentos();
     } catch (erro) {
       console.error(erro);
@@ -672,19 +610,16 @@ export default function PainelAdmin() {
   // EXCLUIR AGENDAMENTO
   // ===================================================
 
-  async function excluirAgendamento(
-    agendamento
-  ) {
+  async function excluirAgendamento(agendamento) {
     if (!supabase) return;
 
     if (
       !agendamento ||
       agendamento.ID === null ||
-      agendamento.ID === undefined
+      agendamento.ID === undefined ||
+      agendamento.ID === ""
     ) {
-      alert(
-        "Agendamento inválido."
-      );
+      alert("Agendamento inválido.");
       return;
     }
 
@@ -695,16 +630,10 @@ export default function PainelAdmin() {
     if (!confirmar) return;
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("Agendamentos")
         .delete()
-        .eq(
-          "ID",
-          agendamento.ID
-        )
+        .eq("ID", agendamento.ID)
         .select();
 
       if (error) {
@@ -722,15 +651,12 @@ export default function PainelAdmin() {
         return;
       }
 
-      setAgendamentos(
-        (lista) =>
-          lista.filter(
-            (item) =>
-              String(item.ID) !==
-              String(
-                agendamento.ID
-              )
-          )
+      setAgendamentos((lista) =>
+        lista.filter(
+          (item) =>
+            String(item.ID) !==
+            String(agendamento.ID)
+        )
       );
 
       alert(
@@ -766,11 +692,10 @@ export default function PainelAdmin() {
     if (
       !cliente ||
       cliente.id === null ||
-      cliente.id === undefined
+      cliente.id === undefined ||
+      cliente.id === ""
     ) {
-      alert(
-        "Cliente inválido."
-      );
+      alert("Cliente inválido.");
       return;
     }
 
@@ -805,7 +730,10 @@ export default function PainelAdmin() {
   async function salvarCliente(e) {
     e.preventDefault();
 
-    if (!supabase) return;
+    if (!supabase) {
+      alert("Supabase não configurado.");
+      return;
+    }
 
     if (!nomeCliente.trim()) {
       alert("Informe o nome.");
@@ -824,20 +752,14 @@ export default function PainelAdmin() {
     try {
       const dados = {
         nome: nomeCliente.trim(),
-        telefone:
-          telefoneCliente.trim(),
+        telefone: telefoneCliente.trim(),
       };
 
       if (editandoCliente) {
-        const {
-          error,
-        } = await supabase
+        const { error } = await supabase
           .from("clientes")
           .update(dados)
-          .eq(
-            "id",
-            editandoCliente.id
-          );
+          .eq("id", editandoCliente.id);
 
         if (error) {
           alert(
@@ -851,9 +773,7 @@ export default function PainelAdmin() {
           "Cliente atualizado!"
         );
       } else {
-        const {
-          error,
-        } = await supabase
+        const { error } = await supabase
           .from("clientes")
           .insert([dados]);
 
@@ -871,6 +791,7 @@ export default function PainelAdmin() {
       }
 
       cancelarFormularioCliente();
+
       await buscarClientes();
     } catch (erro) {
       console.error(erro);
@@ -893,7 +814,8 @@ export default function PainelAdmin() {
     if (
       !cliente ||
       cliente.id === null ||
-      cliente.id === undefined
+      cliente.id === undefined ||
+      cliente.id === ""
     ) {
       alert("Cliente inválido.");
       return;
@@ -906,10 +828,7 @@ export default function PainelAdmin() {
     if (!confirmar) return;
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("clientes")
         .delete()
         .eq("id", cliente.id)
@@ -930,13 +849,12 @@ export default function PainelAdmin() {
         return;
       }
 
-      setClientes(
-        (lista) =>
-          lista.filter(
-            (item) =>
-              String(item.id) !==
-              String(cliente.id)
-          )
+      setClientes((lista) =>
+        lista.filter(
+          (item) =>
+            String(item.id) !==
+            String(cliente.id)
+        )
       );
 
       alert(
@@ -979,11 +897,10 @@ export default function PainelAdmin() {
     if (
       !assinante ||
       assinante.id === null ||
-      assinante.id === undefined
+      assinante.id === undefined ||
+      assinante.id === ""
     ) {
-      alert(
-        "Assinante inválido."
-      );
+      alert("Assinante inválido.");
       return;
     }
 
@@ -1101,11 +1018,9 @@ export default function PainelAdmin() {
     setSalvandoAssinante(true);
 
     try {
-      const valor =
-        Number(
-          String(valorAssinante)
-            .replace(",", ".")
-        );
+      const valor = Number(
+        String(valorAssinante).replace(",", ".")
+      );
 
       if (Number.isNaN(valor)) {
         alert(
@@ -1116,13 +1031,10 @@ export default function PainelAdmin() {
 
       const dados = {
         nome: nomeAssinante.trim(),
-        telefone:
-          telefoneAssinante.trim(),
-        plano:
-          planoAssinante.trim(),
+        telefone: telefoneAssinante.trim(),
+        plano: planoAssinante.trim(),
         valor,
-        data_inicio:
-          dataInicioAssinante,
+        data_inicio: dataInicioAssinante,
         data_vencimento:
           dataVencimentoAssinante,
         status:
@@ -1130,16 +1042,10 @@ export default function PainelAdmin() {
       };
 
       if (editandoAssinante) {
-        const {
-          data,
-          error,
-        } = await supabase
+        const { data, error } = await supabase
           .from("assinantes")
           .update(dados)
-          .eq(
-            "id",
-            editandoAssinante.id
-          )
+          .eq("id", editandoAssinante.id)
           .select();
 
         if (error) {
@@ -1168,13 +1074,9 @@ export default function PainelAdmin() {
           "Assinante atualizado com sucesso!"
         );
       } else {
-        const {
-          data,
-          error,
-        } = await supabase
+        const { error } = await supabase
           .from("assinantes")
-          .insert([dados])
-          .select();
+          .insert([dados]);
 
         if (error) {
           console.error(
@@ -1189,11 +1091,6 @@ export default function PainelAdmin() {
 
           return;
         }
-
-        console.log(
-          "Assinante criado:",
-          data
-        );
 
         alert(
           "Assinante cadastrado com sucesso!"
@@ -1222,15 +1119,14 @@ export default function PainelAdmin() {
   // EXCLUIR ASSINANTE
   // ===================================================
 
-  async function excluirAssinante(
-    assinante
-  ) {
+  async function excluirAssinante(assinante) {
     if (!supabase) return;
 
     if (
       !assinante ||
       assinante.id === null ||
-      assinante.id === undefined
+      assinante.id === undefined ||
+      assinante.id === ""
     ) {
       alert(
         "Assinante inválido."
@@ -1245,16 +1141,10 @@ export default function PainelAdmin() {
     if (!confirmar) return;
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("assinantes")
         .delete()
-        .eq(
-          "id",
-          assinante.id
-        )
+        .eq("id", assinante.id)
         .select();
 
       if (error) {
@@ -1276,15 +1166,12 @@ export default function PainelAdmin() {
         return;
       }
 
-      setAssinantes(
-        (lista) =>
-          lista.filter(
-            (item) =>
-              String(item.id) !==
-              String(
-                assinante.id
-              )
-          )
+      setAssinantes((lista) =>
+        lista.filter(
+          (item) =>
+            String(item.id) !==
+            String(assinante.id)
+        )
       );
 
       alert(
@@ -1305,43 +1192,42 @@ export default function PainelAdmin() {
   // FILTROS
   // ===================================================
 
-  const clientesFiltrados =
-    clientes.filter((cliente) => {
-      const pesquisa =
-        pesquisaCliente
-          .toLowerCase()
-          .trim();
+  const clientesFiltrados = clientes.filter(
+    (cliente) => {
+      const pesquisa = pesquisaCliente
+        .toLowerCase()
+        .trim();
 
       if (!pesquisa) return true;
 
       return (
-        cliente.nome
-          ?.toLowerCase()
+        String(cliente.nome || "")
+          .toLowerCase()
           .includes(pesquisa) ||
-        cliente.telefone
-          ?.toLowerCase()
+        String(cliente.telefone || "")
+          .toLowerCase()
           .includes(pesquisa)
       );
-    });
+    }
+  );
 
   const assinantesFiltrados =
     assinantes.filter((assinante) => {
-      const pesquisa =
-        pesquisaAssinante
-          .toLowerCase()
-          .trim();
+      const pesquisa = pesquisaAssinante
+        .toLowerCase()
+        .trim();
 
       if (!pesquisa) return true;
 
       return (
-        assinante.nome
-          ?.toLowerCase()
+        String(assinante.nome || "")
+          .toLowerCase()
           .includes(pesquisa) ||
-        assinante.telefone
-          ?.toLowerCase()
+        String(assinante.telefone || "")
+          .toLowerCase()
           .includes(pesquisa) ||
-        assinante.plano
-          ?.toLowerCase()
+        String(assinante.plano || "")
+          .toLowerCase()
           .includes(pesquisa)
       );
     });
@@ -1353,11 +1239,10 @@ export default function PainelAdmin() {
   function formatarData(data) {
     if (!data) return "-";
 
-    const partes =
-      String(data).split("-");
+    const partes = String(data).split("-");
 
     if (partes.length !== 3) {
-      return data;
+      return String(data);
     }
 
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
@@ -1368,20 +1253,16 @@ export default function PainelAdmin() {
   // ===================================================
 
   function formatarMoeda(valor) {
-    const numero =
-      Number(valor);
+    const numero = Number(valor);
 
     if (Number.isNaN(numero)) {
       return "R$ 0,00";
     }
 
-    return numero.toLocaleString(
-      "pt-BR",
-      {
-        style: "currency",
-        currency: "BRL",
-      }
-    );
+    return numero.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
   }
 
   // ===================================================
@@ -1389,10 +1270,9 @@ export default function PainelAdmin() {
   // ===================================================
 
   function statusVisual(status) {
-    const valor =
-      String(status || "")
-        .toLowerCase()
-        .trim();
+    const valor = String(status || "")
+      .toLowerCase()
+      .trim();
 
     if (valor === "confirmado") {
       return {
@@ -1422,10 +1302,9 @@ export default function PainelAdmin() {
   // ===================================================
 
   function statusAssinanteVisual(status) {
-    const valor =
-      String(status || "")
-        .toLowerCase()
-        .trim();
+    const valor = String(status || "")
+      .toLowerCase()
+      .trim();
 
     if (valor === "ativo") {
       return {
@@ -1469,7 +1348,7 @@ export default function PainelAdmin() {
   if (carregando) {
     return (
       <main className="min-h-screen bg-black text-white">
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center p-6">
           <div className="text-center">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-zinc-800 border-t-amber-500" />
 
@@ -1486,9 +1365,13 @@ export default function PainelAdmin() {
   // PAINEL
   // ===================================================
 
+  if (!usuario) {
+    return null;
+  }
+
   return (
-    <main className="min-h-screen bg-black px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-black text-white">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
         {/* =================================================
             CABEÇALHO
@@ -1515,10 +1398,9 @@ export default function PainelAdmin() {
               </h1>
 
               <p className="mt-1 text-sm text-zinc-500">
-                Olá, {usuario?.nome}
+                Olá, {usuario?.nome || "Administrador"}
               </p>
             </div>
-
           </div>
 
           <button
@@ -1536,8 +1418,6 @@ export default function PainelAdmin() {
 
         <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* AGENDAMENTOS */}
-
           <button
             type="button"
             onClick={() =>
@@ -1549,9 +1429,7 @@ export default function PainelAdmin() {
                 : "border-zinc-800 bg-zinc-900/70 hover:border-amber-500/40"
             }`}
           >
-            <p className="text-3xl">
-              📅
-            </p>
+            <p className="text-3xl">📅</p>
 
             <p className="mt-3 text-lg font-black">
               Agendamentos
@@ -1561,8 +1439,6 @@ export default function PainelAdmin() {
               Gerenciar horários
             </p>
           </button>
-
-          {/* CLIENTES */}
 
           <button
             type="button"
@@ -1575,9 +1451,7 @@ export default function PainelAdmin() {
                 : "border-zinc-800 bg-zinc-900/70 hover:border-amber-500/40"
             }`}
           >
-            <p className="text-3xl">
-              👥
-            </p>
+            <p className="text-3xl">👥</p>
 
             <p className="mt-3 text-lg font-black">
               Clientes
@@ -1587,8 +1461,6 @@ export default function PainelAdmin() {
               Gerenciar clientes
             </p>
           </button>
-
-          {/* ASSINANTES */}
 
           <button
             type="button"
@@ -1601,9 +1473,7 @@ export default function PainelAdmin() {
                 : "border-zinc-800 bg-zinc-900/70 hover:border-amber-500/40"
             }`}
           >
-            <p className="text-3xl">
-              💳
-            </p>
+            <p className="text-3xl">💳</p>
 
             <p className="mt-3 text-lg font-black">
               Assinantes
@@ -1614,8 +1484,6 @@ export default function PainelAdmin() {
             </p>
           </button>
 
-          {/* BARBEIROS */}
-
           <button
             type="button"
             onClick={() =>
@@ -1624,9 +1492,7 @@ export default function PainelAdmin() {
             }
             className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 text-left transition hover:border-amber-500/50 hover:bg-amber-500/10"
           >
-            <p className="text-3xl">
-              💈
-            </p>
+            <p className="text-3xl">💈</p>
 
             <p className="mt-3 text-lg font-black">
               Cadastro de Barbeiros
@@ -1636,18 +1502,16 @@ export default function PainelAdmin() {
               Gerenciar barbeiros
             </p>
           </button>
-
         </section>
 
         {/* =================================================
-            ABA CLIENTES
+            CLIENTES
         ================================================= */}
 
         {abaAtual === "clientes" && (
           <section>
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500">
                   Gestão
@@ -1670,7 +1534,6 @@ export default function PainelAdmin() {
               >
                 + NOVO CLIENTE
               </button>
-
             </div>
 
             {mostrarFormularioCliente && (
@@ -1734,7 +1597,6 @@ export default function PainelAdmin() {
                     </button>
 
                   </div>
-
                 </form>
               </div>
             )}
@@ -1757,9 +1619,7 @@ export default function PainelAdmin() {
               </div>
             ) : clientesFiltrados.length === 0 ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-10 text-center">
-                <p className="text-4xl">
-                  👥
-                </p>
+                <p className="text-4xl">👥</p>
 
                 <p className="mt-4 font-black">
                   Nenhum cliente encontrado
@@ -1794,18 +1654,19 @@ export default function PainelAdmin() {
                         (cliente, index) => (
                           <tr
                             key={
-                              cliente.id ??
-                              `cliente-${index}`
+                              cliente.id
+                                ? `cliente-${cliente.id}`
+                                : `cliente-index-${index}`
                             }
                             className="border-b border-zinc-900 bg-black/40"
                           >
 
                             <td className="px-5 py-4 font-bold">
-                              {cliente.nome}
+                              {cliente.nome || "-"}
                             </td>
 
                             <td className="px-5 py-4 text-sm text-zinc-400">
-                              {cliente.telefone}
+                              {cliente.telefone || "-"}
                             </td>
 
                             <td className="px-5 py-4">
@@ -1837,7 +1698,6 @@ export default function PainelAdmin() {
 
                               </div>
                             </td>
-
                           </tr>
                         )
                       )}
@@ -1847,22 +1707,24 @@ export default function PainelAdmin() {
                 </div>
 
                 <div className="divide-y divide-zinc-800 md:hidden">
+
                   {clientesFiltrados.map(
                     (cliente, index) => (
                       <div
                         key={
-                          cliente.id ??
-                          `cliente-mobile-${index}`
+                          cliente.id
+                            ? `cliente-mobile-${cliente.id}`
+                            : `cliente-mobile-index-${index}`
                         }
                         className="bg-black/40 p-5"
                       >
 
                         <h3 className="font-black">
-                          {cliente.nome}
+                          {cliente.nome || "-"}
                         </h3>
 
                         <p className="mt-2 text-sm text-zinc-500">
-                          📱 {cliente.telefone}
+                          📱 {cliente.telefone || "-"}
                         </p>
 
                         <div className="mt-4 flex gap-2">
@@ -1895,27 +1757,23 @@ export default function PainelAdmin() {
                       </div>
                     )
                   )}
-                </div>
 
+                </div>
               </div>
             )}
-
           </section>
         )}
 
         {/* =================================================
-            ABA ASSINANTES
+            ASSINANTES
         ================================================= */}
 
         {abaAtual === "assinantes" && (
           <section>
 
-            {/* CABEÇALHO */}
-
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
-
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500">
                   Gestão
                 </p>
@@ -1927,7 +1785,6 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-sm text-zinc-500">
                   Gerencie os planos e mensalidades.
                 </p>
-
               </div>
 
               <div className="flex gap-2">
@@ -1954,7 +1811,6 @@ export default function PainelAdmin() {
                 </button>
 
               </div>
-
             </div>
 
             {/* CARDS */}
@@ -1962,10 +1818,7 @@ export default function PainelAdmin() {
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  💳
-                </p>
+                <p className="text-2xl">💳</p>
 
                 <p className="mt-4 text-3xl font-black text-amber-500">
                   {assinantes.length}
@@ -1974,14 +1827,10 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-sm font-bold">
                   Total de assinantes
                 </p>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  🟢
-                </p>
+                <p className="text-2xl">🟢</p>
 
                 <p className="mt-4 text-3xl font-black text-green-400">
                   {
@@ -1991,8 +1840,7 @@ export default function PainelAdmin() {
                           item.status || ""
                         )
                           .toLowerCase()
-                          .trim() ===
-                        "ativo"
+                          .trim() === "ativo"
                     ).length
                   }
                 </p>
@@ -2000,14 +1848,10 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-sm font-bold">
                   Ativos
                 </p>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  🟡
-                </p>
+                <p className="text-2xl">🟡</p>
 
                 <p className="mt-4 text-3xl font-black text-yellow-400">
                   {
@@ -2017,8 +1861,7 @@ export default function PainelAdmin() {
                           item.status || ""
                         )
                           .toLowerCase()
-                          .trim() ===
-                        "pendente"
+                          .trim() === "pendente"
                     ).length
                   }
                 </p>
@@ -2026,14 +1869,10 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-sm font-bold">
                   Pendentes
                 </p>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  💰
-                </p>
+                <p className="text-2xl">💰</p>
 
                 <p className="mt-4 text-2xl font-black text-blue-400">
                   {formatarMoeda(
@@ -2048,14 +1887,10 @@ export default function PainelAdmin() {
                           "ativo"
                       )
                       .reduce(
-                        (
-                          total,
-                          item
-                        ) =>
+                        (total, item) =>
                           total +
                           Number(
-                            item.valor ||
-                              0
+                            item.valor || 0
                           ),
                         0
                       )
@@ -2065,7 +1900,6 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-sm font-bold">
                   Receita mensal
                 </p>
-
               </div>
 
             </div>
@@ -2076,7 +1910,6 @@ export default function PainelAdmin() {
               <div className="mb-6 rounded-2xl border border-amber-500/30 bg-zinc-900 p-6">
 
                 <div className="mb-6">
-
                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500">
                     {editandoAssinante
                       ? "Edição"
@@ -2088,7 +1921,6 @@ export default function PainelAdmin() {
                       ? "Editar assinante"
                       : "Novo assinante"}
                   </h3>
-
                 </div>
 
                 <form
@@ -2098,10 +1930,7 @@ export default function PainelAdmin() {
                   className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 >
 
-                  {/* NOME */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       NOME
                     </label>
@@ -2117,13 +1946,9 @@ export default function PainelAdmin() {
                       placeholder="Nome completo"
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     />
-
                   </div>
 
-                  {/* TELEFONE */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       WHATSAPP
                     </label>
@@ -2139,13 +1964,9 @@ export default function PainelAdmin() {
                       placeholder="(99) 99999-9999"
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     />
-
                   </div>
 
-                  {/* PLANO */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       PLANO
                     </label>
@@ -2159,7 +1980,6 @@ export default function PainelAdmin() {
                       }
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     >
-
                       <option value="Mensal">
                         Mensal
                       </option>
@@ -2175,15 +1995,10 @@ export default function PainelAdmin() {
                       <option value="Anual">
                         Anual
                       </option>
-
                     </select>
-
                   </div>
 
-                  {/* VALOR */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       VALOR
                     </label>
@@ -2201,13 +2016,9 @@ export default function PainelAdmin() {
                       placeholder="Ex: 50.00"
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     />
-
                   </div>
 
-                  {/* DATA INÍCIO */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       DATA DE INÍCIO
                     </label>
@@ -2224,13 +2035,9 @@ export default function PainelAdmin() {
                       }
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     />
-
                   </div>
 
-                  {/* VENCIMENTO */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       VENCIMENTO
                     </label>
@@ -2247,13 +2054,9 @@ export default function PainelAdmin() {
                       }
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     />
-
                   </div>
 
-                  {/* STATUS */}
-
                   <div>
-
                     <label className="mb-2 block text-xs font-bold text-zinc-500">
                       STATUS
                     </label>
@@ -2269,7 +2072,6 @@ export default function PainelAdmin() {
                       }
                       className="w-full rounded-xl border border-zinc-800 bg-black/60 p-4 text-sm outline-none focus:border-amber-500"
                     >
-
                       <option value="ativo">
                         Ativo
                       </option>
@@ -2281,12 +2083,8 @@ export default function PainelAdmin() {
                       <option value="cancelado">
                         Cancelado
                       </option>
-
                     </select>
-
                   </div>
-
-                  {/* BOTÕES */}
 
                   <div className="flex flex-wrap gap-3 sm:col-span-2 lg:col-span-3">
 
@@ -2315,46 +2113,35 @@ export default function PainelAdmin() {
                     </button>
 
                   </div>
-
                 </form>
-
               </div>
             )}
 
             {/* PESQUISA */}
 
-            <div className="mb-5">
-
-              <input
-                type="search"
-                placeholder="🔎 Pesquisar por nome, WhatsApp ou plano..."
-                value={pesquisaAssinante}
-                onChange={(e) =>
-                  setPesquisaAssinante(
-                    e.target.value
-                  )
-                }
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/70 p-4 text-sm outline-none placeholder:text-zinc-600 focus:border-amber-500"
-              />
-
-            </div>
+            <input
+              type="search"
+              placeholder="🔎 Pesquisar por nome, WhatsApp ou plano..."
+              value={pesquisaAssinante}
+              onChange={(e) =>
+                setPesquisaAssinante(
+                  e.target.value
+                )
+              }
+              className="mb-5 w-full rounded-xl border border-zinc-800 bg-zinc-900/70 p-4 text-sm outline-none placeholder:text-zinc-600 focus:border-amber-500"
+            />
 
             {/* LISTAGEM */}
 
             {carregandoAssinantes ? (
-
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-10 text-center">
-
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-800 border-t-amber-500" />
 
                 <p className="mt-4 text-sm text-zinc-500">
                   Carregando assinantes...
                 </p>
-
               </div>
-
             ) : assinantesFiltrados.length === 0 ? (
-
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-10 text-center">
 
                 <p className="text-4xl">
@@ -2378,11 +2165,8 @@ export default function PainelAdmin() {
                 >
                   + NOVO ASSINANTE
                 </button>
-
               </div>
-
             ) : (
-
               <div className="overflow-hidden rounded-2xl border border-zinc-800">
 
                 {/* DESKTOP */}
@@ -2392,7 +2176,6 @@ export default function PainelAdmin() {
                   <table className="w-full">
 
                     <thead className="bg-zinc-900">
-
                       <tr className="border-b border-zinc-800 text-left text-[10px] uppercase tracking-widest text-zinc-500">
 
                         <th className="px-5 py-4">
@@ -2420,17 +2203,11 @@ export default function PainelAdmin() {
                         </th>
 
                       </tr>
-
                     </thead>
 
                     <tbody>
-
                       {assinantesFiltrados.map(
-                        (
-                          assinante,
-                          index
-                        ) => {
-
+                        (assinante, index) => {
                           const status =
                             statusAssinanteVisual(
                               assinante.status
@@ -2439,34 +2216,26 @@ export default function PainelAdmin() {
                           return (
                             <tr
                               key={
-                                assinante.id ??
-                                `assinante-${index}`
+                                assinante.id
+                                  ? `assinante-${assinante.id}`
+                                  : `assinante-index-${index}`
                               }
                               className="border-b border-zinc-900 bg-black/40 hover:bg-zinc-900/50"
                             >
 
                               <td className="px-5 py-4">
-
                                 <p className="font-bold text-zinc-200">
-                                  {
-                                    assinante.nome
-                                  }
+                                  {assinante.nome || "-"}
                                 </p>
 
                                 <p className="mt-1 text-xs text-zinc-600">
                                   📱{" "}
-                                  {
-                                    assinante.telefone
-                                  }
+                                  {assinante.telefone || "-"}
                                 </p>
-
                               </td>
 
                               <td className="px-5 py-4 text-sm font-bold text-zinc-300">
-                                {
-                                  assinante.plano ||
-                                  "-"
-                                }
+                                {assinante.plano || "-"}
                               </td>
 
                               <td className="px-5 py-4 text-sm font-black text-amber-500">
@@ -2482,19 +2251,14 @@ export default function PainelAdmin() {
                               </td>
 
                               <td className="px-5 py-4">
-
                                 <span
                                   className={`inline-flex rounded-full border px-3 py-1 text-[10px] font-black ${status.classe}`}
                                 >
-                                  {
-                                    status.texto
-                                  }
+                                  {status.texto}
                                 </span>
-
                               </td>
 
                               <td className="px-5 py-4">
-
                                 <div className="flex justify-end gap-2">
 
                                   <button
@@ -2522,18 +2286,14 @@ export default function PainelAdmin() {
                                   </button>
 
                                 </div>
-
                               </td>
 
                             </tr>
                           );
                         }
                       )}
-
                     </tbody>
-
                   </table>
-
                 </div>
 
                 {/* MOBILE */}
@@ -2541,22 +2301,18 @@ export default function PainelAdmin() {
                 <div className="divide-y divide-zinc-800 md:hidden">
 
                   {assinantesFiltrados.map(
-                    (
-                      assinante,
-                      index
-                    ) => {
-
+                    (assinante, index) => {
                       const status =
                         statusAssinanteVisual(
                           assinante.status
                         );
 
                       return (
-
                         <div
                           key={
-                            assinante.id ??
-                            `assinante-mobile-${index}`
+                            assinante.id
+                              ? `assinante-mobile-${assinante.id}`
+                              : `assinante-mobile-index-${index}`
                           }
                           className="bg-black/40 p-5"
                         >
@@ -2564,30 +2320,21 @@ export default function PainelAdmin() {
                           <div className="flex items-start justify-between gap-3">
 
                             <div>
-
                               <h3 className="font-black text-zinc-200">
-                                {
-                                  assinante.nome
-                                }
+                                {assinante.nome || "-"}
                               </h3>
 
                               <p className="mt-1 text-xs text-zinc-600">
                                 📱{" "}
-                                {
-                                  assinante.telefone
-                                }
+                                {assinante.telefone || "-"}
                               </p>
-
                             </div>
 
                             <span
                               className={`rounded-full border px-3 py-1 text-[9px] font-black ${status.classe}`}
                             >
-                              {
-                                status.texto
-                              }
+                              {status.texto}
                             </span>
-
                           </div>
 
                           <div className="mt-5 grid grid-cols-2 gap-4">
@@ -2598,10 +2345,7 @@ export default function PainelAdmin() {
                               </p>
 
                               <p className="mt-1 text-sm font-bold">
-                                {
-                                  assinante.plano ||
-                                  "-"
-                                }
+                                {assinante.plano || "-"}
                               </p>
                             </div>
 
@@ -2670,24 +2414,19 @@ export default function PainelAdmin() {
                             </button>
 
                           </div>
-
                         </div>
-
                       );
                     }
                   )}
 
                 </div>
-
               </div>
-
             )}
-
           </section>
         )}
 
         {/* =================================================
-            ABA AGENDAMENTOS
+            AGENDAMENTOS
         ================================================= */}
 
         {abaAtual === "agendamentos" && (
@@ -2698,10 +2437,7 @@ export default function PainelAdmin() {
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  📅
-                </p>
+                <p className="text-2xl">📅</p>
 
                 <p className="mt-4 text-3xl font-black text-amber-500">
                   {agendamentos.length}
@@ -2714,14 +2450,10 @@ export default function PainelAdmin() {
                 <p className="mt-1 text-xs text-zinc-500">
                   Total registrado
                 </p>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  🟡
-                </p>
+                <p className="text-2xl">🟡</p>
 
                 <p className="mt-4 text-3xl font-black text-yellow-400">
                   {
@@ -2740,14 +2472,10 @@ export default function PainelAdmin() {
                 <h2 className="mt-1 text-sm font-bold">
                   Pendentes
                 </h2>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  🟢
-                </p>
+                <p className="text-2xl">🟢</p>
 
                 <p className="mt-4 text-3xl font-black text-green-400">
                   {
@@ -2766,14 +2494,10 @@ export default function PainelAdmin() {
                 <h2 className="mt-1 text-sm font-bold">
                   Confirmados
                 </h2>
-
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
-
-                <p className="text-2xl">
-                  💈
-                </p>
+                <p className="text-2xl">💈</p>
 
                 <p className="mt-4 text-3xl font-black text-blue-400">
                   {
@@ -2791,7 +2515,6 @@ export default function PainelAdmin() {
                 <h2 className="mt-1 text-sm font-bold">
                   Barbeiros
                 </h2>
-
               </div>
 
             </section>
@@ -2803,7 +2526,6 @@ export default function PainelAdmin() {
               <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                 <div>
-
                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500">
                     Gestão
                   </p>
@@ -2815,7 +2537,6 @@ export default function PainelAdmin() {
                   <p className="mt-1 text-sm text-zinc-500">
                     Crie, edite ou exclua agendamentos.
                   </p>
-
                 </div>
 
                 <div className="flex gap-2">
@@ -2846,10 +2567,9 @@ export default function PainelAdmin() {
                   </button>
 
                 </div>
-
               </div>
 
-              {/* FORM AGENDAMENTO */}
+              {/* FORMULÁRIO */}
 
               {mostrarFormularioAgendamento && (
                 <div className="mb-6 rounded-2xl border border-amber-500/30 bg-zinc-900 p-6">
@@ -3002,7 +2722,6 @@ export default function PainelAdmin() {
                     </div>
 
                   </form>
-
                 </div>
               )}
 
@@ -3032,16 +2751,17 @@ export default function PainelAdmin() {
                 </div>
               )}
 
-              {/* LISTA */}
+              {/* LISTAGEM */}
 
               {carregandoAgendamentos ? (
-
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-10 text-center">
-                  Carregando agendamentos...
+                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-800 border-t-amber-500" />
+
+                  <p className="mt-4 text-sm text-zinc-500">
+                    Carregando agendamentos...
+                  </p>
                 </div>
-
               ) : agendamentos.length === 0 ? (
-
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-10 text-center">
 
                   <p className="text-4xl">
@@ -3053,17 +2773,16 @@ export default function PainelAdmin() {
                   </h3>
 
                 </div>
-
               ) : (
-
                 <div className="overflow-hidden rounded-2xl border border-zinc-800">
+
+                  {/* DESKTOP */}
 
                   <div className="hidden overflow-x-auto md:block">
 
                     <table className="w-full">
 
                       <thead className="bg-zinc-900">
-
                         <tr className="border-b border-zinc-800 text-left text-[10px] uppercase tracking-widest text-zinc-500">
 
                           <th className="px-5 py-4">
@@ -3095,7 +2814,6 @@ export default function PainelAdmin() {
                           </th>
 
                         </tr>
-
                       </thead>
 
                       <tbody>
@@ -3105,7 +2823,6 @@ export default function PainelAdmin() {
                             agendamento,
                             index
                           ) => {
-
                             const status =
                               statusVisual(
                                 agendamento.status
@@ -3114,39 +2831,29 @@ export default function PainelAdmin() {
                             return (
                               <tr
                                 key={
-                                  agendamento.ID ??
-                                  `agendamento-${index}`
+                                  agendamento.ID
+                                    ? `agendamento-${agendamento.ID}`
+                                    : `agendamento-index-${index}`
                                 }
                                 className="border-b border-zinc-900 bg-black/40"
                               >
 
                                 <td className="px-5 py-4">
-
                                   <p className="font-bold">
-                                    {
-                                      agendamento.Nome
-                                    }
+                                    {agendamento.Nome || "-"}
                                   </p>
 
                                   <p className="mt-1 text-xs text-zinc-600">
-                                    {
-                                      agendamento.Telefone
-                                    }
+                                    {agendamento.Telefone || "-"}
                                   </p>
-
                                 </td>
 
                                 <td className="px-5 py-4 text-sm">
-                                  {
-                                    agendamento.Serviço
-                                  }
+                                  {agendamento.Serviço || "-"}
                                 </td>
 
                                 <td className="px-5 py-4 text-sm">
-                                  {
-                                    agendamento.Colaborador ||
-                                    "-"
-                                  }
+                                  {agendamento.Colaborador || "-"}
                                 </td>
 
                                 <td className="px-5 py-4 text-sm text-zinc-400">
@@ -3156,21 +2863,15 @@ export default function PainelAdmin() {
                                 </td>
 
                                 <td className="px-5 py-4 font-black text-amber-500">
-                                  {
-                                    agendamento.Horário
-                                  }
+                                  {agendamento.Horário || "-"}
                                 </td>
 
                                 <td className="px-5 py-4">
-
                                   <span
                                     className={`rounded-full border px-3 py-1 text-[10px] font-black ${status.classe}`}
                                   >
-                                    {
-                                      status.texto
-                                    }
+                                    {status.texto}
                                   </span>
-
                                 </td>
 
                                 <td className="px-5 py-4">
@@ -3211,9 +2912,7 @@ export default function PainelAdmin() {
                         )}
 
                       </tbody>
-
                     </table>
-
                   </div>
 
                   {/* MOBILE */}
@@ -3225,18 +2924,17 @@ export default function PainelAdmin() {
                         agendamento,
                         index
                       ) => {
-
                         const status =
                           statusVisual(
                             agendamento.status
                           );
 
                         return (
-
                           <div
                             key={
-                              agendamento.ID ??
-                              `agendamento-mobile-${index}`
+                              agendamento.ID
+                                ? `agendamento-mobile-${agendamento.ID}`
+                                : `agendamento-mobile-index-${index}`
                             }
                             className="bg-black/40 p-5"
                           >
@@ -3246,15 +2944,11 @@ export default function PainelAdmin() {
                               <div>
 
                                 <h3 className="font-black">
-                                  {
-                                    agendamento.Nome
-                                  }
+                                  {agendamento.Nome || "-"}
                                 </h3>
 
                                 <p className="mt-1 text-xs text-zinc-600">
-                                  {
-                                    agendamento.Telefone
-                                  }
+                                  {agendamento.Telefone || "-"}
                                 </p>
 
                               </div>
@@ -3262,9 +2956,7 @@ export default function PainelAdmin() {
                               <span
                                 className={`rounded-full border px-3 py-1 text-[9px] font-black ${status.classe}`}
                               >
-                                {
-                                  status.texto
-                                }
+                                {status.texto}
                               </span>
 
                             </div>
@@ -3277,9 +2969,7 @@ export default function PainelAdmin() {
                                 </p>
 
                                 <p className="mt-1 text-xs font-bold">
-                                  {
-                                    agendamento.Serviço
-                                  }
+                                  {agendamento.Serviço || "-"}
                                 </p>
                               </div>
 
@@ -3289,10 +2979,7 @@ export default function PainelAdmin() {
                                 </p>
 
                                 <p className="mt-1 text-xs font-bold">
-                                  {
-                                    agendamento.Colaborador ||
-                                    "-"
-                                  }
+                                  {agendamento.Colaborador || "-"}
                                 </p>
                               </div>
 
@@ -3314,9 +3001,7 @@ export default function PainelAdmin() {
                                 </p>
 
                                 <p className="mt-1 text-sm font-black text-amber-500">
-                                  {
-                                    agendamento.Horário
-                                  }
+                                  {agendamento.Horário || "-"}
                                 </p>
                               </div>
 
@@ -3351,19 +3036,15 @@ export default function PainelAdmin() {
                             </div>
 
                           </div>
-
                         );
                       }
                     )}
 
                   </div>
-
                 </div>
-
               )}
 
             </section>
-
           </section>
         )}
 
