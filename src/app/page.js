@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
-// =====================================================
-// SUPABASE
-// =====================================================
+/* =========================================================
+   SOUSA BARBEARIA — LUXURY EXPERIENCE 2.1
+   LIGHT PREMIUM / CHAMPAGNE / GRAPHITE
+========================================================= */
+
+/* =========================================================
+   SUPABASE
+========================================================= */
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -19,17 +24,18 @@ const supabase = createClient(
   supabaseAnonKey
 );
 
-// =====================================================
-// CONFIGURAÇÕES
-// =====================================================
+/* =========================================================
+   CONFIGURAÇÕES
+========================================================= */
 
 const TABELA_AGENDAMENTOS = "Agendamentos";
 const TABELA_BARBEIROS = "barbeiros";
 const BUCKET_BARBEIROS = "barbeiros";
+const WHATSAPP_PADRAO = "559985289973";
 
-// =====================================================
-// HORÁRIOS
-// =====================================================
+/* =========================================================
+   HORÁRIOS
+========================================================= */
 
 const HORARIOS_SEMANA = [
   "08:00",
@@ -55,32 +61,77 @@ const HORARIOS_DOMINGO = [
   "11:30",
 ];
 
-// =====================================================
-// SERVIÇOS
-// =====================================================
+/* =========================================================
+   SERVIÇOS
+========================================================= */
 
 const SERVICOS = [
-  ["Corte", "R$ 20,00", "✂️"],
-  ["Barba", "R$ 10,00", "🧔"],
-  ["Corte e Barba", "R$ 30,00", "🔥"],
-  ["Sobrancelha", "R$ 10,00", "✨"],
-  [
-    "Combo - Corte, Barba e Sobrancelha",
-    "R$ 35,00",
-    "👑",
-  ],
-  ["Luzes", "R$ 80,00", "💈"],
-  ["Progressiva", "R$ 80,00", "💇"],
-  ["Pigmentação Cabelo", "R$ 20,00", "🎨"],
-  ["Pigmentação Barba", "R$ 20,00", "🎨"],
-  ["Risco", "A partir de R$ 05,00", "⚡"],
-  ["Hidratação e Escova", "R$ 20,00", "💧"],
-  ["Corte Feminino", "R$ 50,00", "💇‍♀️"],
+  {
+    nome: "Corte",
+    preco: "R$ 20,00",
+    numero: "01",
+  },
+  {
+    nome: "Barba",
+    preco: "R$ 10,00",
+    numero: "02",
+  },
+  {
+    nome: "Corte e Barba",
+    preco: "R$ 30,00",
+    numero: "03",
+  },
+  {
+    nome: "Sobrancelha",
+    preco: "R$ 10,00",
+    numero: "04",
+  },
+  {
+    nome: "Combo",
+    descricao: "Corte + Barba + Sobrancelha",
+    preco: "R$ 35,00",
+    numero: "05",
+  },
+  {
+    nome: "Luzes",
+    preco: "R$ 80,00",
+    numero: "06",
+  },
+  {
+    nome: "Progressiva",
+    preco: "R$ 80,00",
+    numero: "07",
+  },
+  {
+    nome: "Pigmentação Cabelo",
+    preco: "R$ 20,00",
+    numero: "08",
+  },
+  {
+    nome: "Pigmentação Barba",
+    preco: "R$ 20,00",
+    numero: "09",
+  },
+  {
+    nome: "Risco",
+    preco: "A partir de R$ 5,00",
+    numero: "10",
+  },
+  {
+    nome: "Hidratação e Escova",
+    preco: "R$ 20,00",
+    numero: "11",
+  },
+  {
+    nome: "Corte Feminino",
+    preco: "R$ 50,00",
+    numero: "12",
+  },
 ];
 
-// =====================================================
-// GERAR URL DA FOTO
-// =====================================================
+/* =========================================================
+   URL DA FOTO
+========================================================= */
 
 function gerarUrlFoto(foto) {
   if (!foto) {
@@ -93,10 +144,6 @@ function gerarUrlFoto(foto) {
     return "";
   }
 
-  // ===================================================
-  // SE JÁ FOR UMA URL COMPLETA
-  // ===================================================
-
   if (
     valor.startsWith("http://") ||
     valor.startsWith("https://")
@@ -104,25 +151,13 @@ function gerarUrlFoto(foto) {
     return valor;
   }
 
-  // ===================================================
-  // DECODIFICAR CASO NECESSÁRIO
-  // ===================================================
-
   try {
     valor = decodeURIComponent(valor);
   } catch {
-    // mantém o valor original
+    // mantém original
   }
 
-  // ===================================================
-  // REMOVER BARRAS INICIAIS
-  // ===================================================
-
   valor = valor.replace(/^\/+/, "");
-
-  // ===================================================
-  // CASO TENHA SALVO URL COMPLETA DO STORAGE
-  // ===================================================
 
   const marcadorPublico =
     `/storage/v1/object/public/${BUCKET_BARBEIROS}/`;
@@ -140,11 +175,6 @@ function gerarUrlFoto(foto) {
       valor.split(marcadorAutenticado)[1] || "";
   }
 
-  // ===================================================
-  // CASO TENHA SALVO:
-  // barbeiros/foto.jpg
-  // ===================================================
-
   const prefixoBucket =
     `${BUCKET_BARBEIROS}/`;
 
@@ -154,19 +184,11 @@ function gerarUrlFoto(foto) {
     );
   }
 
-  // ===================================================
-  // LIMPAR NOVAMENTE
-  // ===================================================
-
   valor = valor.replace(/^\/+/, "");
 
   if (!valor) {
     return "";
   }
-
-  // ===================================================
-  // CODIFICAR CADA PARTE DO CAMINHO
-  // ===================================================
 
   const caminhoCodificado = valor
     .split("/")
@@ -174,10 +196,6 @@ function gerarUrlFoto(foto) {
       encodeURIComponent(parte)
     )
     .join("/");
-
-  // ===================================================
-  // GERAR URL PÚBLICA DO SUPABASE
-  // ===================================================
 
   const {
     data,
@@ -197,47 +215,30 @@ function gerarUrlFoto(foto) {
     return "";
   }
 
-  const urlFinal =
-    data?.publicUrl || "";
-
-  console.log("================================");
-  console.log("FOTO ORIGINAL:", foto);
-  console.log(
-    "CAMINHO FINAL:",
-    caminhoCodificado
-  );
-  console.log(
-    "URL FINAL:",
-    urlFinal
-  );
-  console.log("================================");
-
-  return urlFinal;
+  return data?.publicUrl || "";
 }
 
-// =====================================================
-// COMPONENTE
-// =====================================================
+/* =========================================================
+   COMPONENTE
+========================================================= */
 
 export default function Home() {
-  // ===================================================
-  // CLIENTE
-  // ===================================================
+  /* =======================================================
+     DADOS DO CLIENTE
+  ======================================================= */
 
-  const [Nome, setNome] = useState("");
+  const [Nome, setNome] =
+    useState("");
+
   const [Telefone, setTelefone] =
     useState("");
 
-  // ===================================================
-  // SERVIÇOS
-  // ===================================================
+  /* =======================================================
+     AGENDAMENTO
+  ======================================================= */
 
   const [Serviços, setServiços] =
     useState([]);
-
-  // ===================================================
-  // AGENDAMENTO
-  // ===================================================
 
   const [Colaborador, setColaborador] =
     useState("");
@@ -248,9 +249,9 @@ export default function Home() {
   const [Horário, setHorário] =
     useState("");
 
-  // ===================================================
-  // BARBEIROS
-  // ===================================================
+  /* =======================================================
+     BARBEIROS
+  ======================================================= */
 
   const [barbeiros, setBarbeiros] =
     useState([]);
@@ -260,9 +261,9 @@ export default function Home() {
     setCarregandoBarbeiros,
   ] = useState(true);
 
-  // ===================================================
-  // HORÁRIOS
-  // ===================================================
+  /* =======================================================
+     HORÁRIOS
+  ======================================================= */
 
   const [
     horariosOcupados,
@@ -274,16 +275,21 @@ export default function Home() {
     setHorariosDisponiveisDoDia,
   ] = useState(HORARIOS_SEMANA);
 
-  // ===================================================
-  // ESTADOS
-  // ===================================================
+  /* =======================================================
+     UI
+  ======================================================= */
 
   const [carregando, setCarregando] =
     useState(false);
 
-  // ===================================================
-  // BUSCAR BARBEIROS
-  // ===================================================
+  const [
+    etapaAtiva,
+    setEtapaAtiva,
+  ] = useState(1);
+
+  /* =======================================================
+     BUSCAR BARBEIROS
+  ======================================================= */
 
   useEffect(() => {
     async function carregarBarbeiros() {
@@ -325,11 +331,6 @@ export default function Home() {
           return;
         }
 
-        console.log(
-          "BARBEIROS VINDOS DO SUPABASE:",
-          data
-        );
-
         const barbeirosComFoto =
           (data || []).map(
             (barbeiro, index) => {
@@ -340,29 +341,14 @@ export default function Home() {
                     ).trim()
                   : "";
 
-              const fotoUrl =
-                gerarUrlFoto(
-                  fotoOriginal
-                );
-
-              console.log(
-                "BARBEIRO:",
-                barbeiro?.nome
-              );
-
-              console.log(
-                "FOTO NO BANCO:",
-                fotoOriginal
-              );
-
-              console.log(
-                "FOTO URL:",
-                fotoUrl
-              );
-
               return {
                 ...barbeiro,
-                fotoUrl,
+
+                fotoUrl:
+                  gerarUrlFoto(
+                    fotoOriginal
+                  ),
+
                 _key:
                   barbeiro?.id ??
                   `${barbeiro?.nome || "barbeiro"}-${index}`,
@@ -375,22 +361,24 @@ export default function Home() {
         );
       } catch (error) {
         console.error(
-          "Erro inesperado ao buscar barbeiros:",
+          "Erro inesperado:",
           error
         );
 
         setBarbeiros([]);
       } finally {
-        setCarregandoBarbeiros(false);
+        setCarregandoBarbeiros(
+          false
+        );
       }
     }
 
     carregarBarbeiros();
   }, []);
 
-  // ===================================================
-  // ALTERAR HORÁRIOS CONFORME O DIA
-  // ===================================================
+  /* =======================================================
+     DIA DA SEMANA
+  ======================================================= */
 
   useEffect(() => {
     if (!Data) {
@@ -399,7 +387,6 @@ export default function Home() {
       );
 
       setHorário("");
-
       return;
     }
 
@@ -424,13 +411,16 @@ export default function Home() {
     setHorário("");
   }, [Data]);
 
-  // ===================================================
-  // BUSCAR HORÁRIOS OCUPADOS
-  // ===================================================
+  /* =======================================================
+     HORÁRIOS OCUPADOS
+  ======================================================= */
 
   useEffect(() => {
     async function buscarHorariosOcupados() {
-      if (!Data || !Colaborador) {
+      if (
+        !Data ||
+        !Colaborador
+      ) {
         setHorariosOcupados([]);
         return;
       }
@@ -479,41 +469,136 @@ export default function Home() {
     buscarHorariosOcupados();
   }, [Data, Colaborador]);
 
-  // ===================================================
-  // SELECIONAR SERVIÇO
-  // ===================================================
+  /* =======================================================
+     SERVIÇOS SELECIONADOS
+  ======================================================= */
 
   const selecionarServico = (
-    valor
+    servico
   ) => {
+    const valor =
+      servico.nome === "Combo"
+        ? `Combo - ${servico.descricao}`
+        : `${servico.nome} - ${servico.preco}`;
+
     setServiços(
-      (servicosAtuais) => {
+      (atuais) => {
         if (
-          servicosAtuais.includes(
-            valor
-          )
+          atuais.includes(valor)
         ) {
-          return servicosAtuais.filter(
-            (servico) =>
-              servico !== valor
+          return atuais.filter(
+            (item) =>
+              item !== valor
           );
         }
 
         return [
-          ...servicosAtuais,
+          ...atuais,
           valor,
         ];
       }
     );
+
+    setEtapaAtiva(2);
   };
 
-  // ===================================================
-  // ATUALIZAR HORÁRIOS
-  // ===================================================
+  /* =======================================================
+     BARBEIRO SELECIONADO
+  ======================================================= */
+
+  const barbeiroSelecionado =
+    barbeiros.find(
+      (barbeiro) =>
+        String(barbeiro.id) ===
+        String(Colaborador)
+    );
+
+  /* =======================================================
+     QUANTIDADE DE SERVIÇOS
+  ======================================================= */
+
+  const quantidadeServicos =
+    Serviços.length;
+
+  /* =======================================================
+     PROGRESSO
+  ======================================================= */
+
+  const progresso =
+    Horário
+      ? 100
+      : Data
+      ? 80
+      : Colaborador
+      ? 60
+      : Serviços.length > 0
+      ? 40
+      : Nome
+      ? 20
+      : 0;
+
+  /* =======================================================
+     DATA MÍNIMA
+  ======================================================= */
+
+  const dataMinima =
+    new Date().toLocaleDateString(
+      "en-CA"
+    );
+
+  /* =======================================================
+     WHATSAPP DO BARBEIRO
+  ======================================================= */
+
+  const abrirWhatsAppBarbeiro =
+    (barbeiro) => {
+      if (
+        !barbeiro?.whatsapp
+      ) {
+        alert(
+          "Este barbeiro ainda não possui WhatsApp cadastrado."
+        );
+
+        return;
+      }
+
+      const numero =
+        String(
+          barbeiro.whatsapp
+        ).replace(
+          /\D/g,
+          ""
+        );
+
+      if (!numero) {
+        alert(
+          "O WhatsApp deste barbeiro não está válido."
+        );
+
+        return;
+      }
+
+      const mensagem =
+        `Olá ${barbeiro.nome}! Vim pelo site da Sousa Barbearia e gostaria de falar com você.`;
+
+      window.open(
+        `https://wa.me/${numero}?text=${encodeURIComponent(
+          mensagem
+        )}`,
+        "_blank"
+      );
+    };
+
+  /* =======================================================
+     ATUALIZAR HORÁRIOS
+  ======================================================= */
 
   const atualizarHorariosOcupados =
     async () => {
-      if (!Data || !Colaborador) {
+      if (
+        !Data ||
+        !Colaborador
+      ) {
         return;
       }
 
@@ -534,7 +619,7 @@ export default function Home() {
 
         if (error) {
           console.error(
-            "Erro ao atualizar horários:",
+            "Erro:",
             error
           );
 
@@ -551,83 +636,41 @@ export default function Home() {
         );
       } catch (error) {
         console.error(
-          "Erro ao atualizar horários:",
           error
         );
       }
     };
 
-  // ===================================================
-  // BARBEIRO SELECIONADO
-  // ===================================================
-
-  const barbeiroSelecionado =
-    barbeiros.find(
-      (barbeiro) =>
-        String(barbeiro.id) ===
-        String(Colaborador)
-    );
-
-  // ===================================================
-  // WHATSAPP DO BARBEIRO
-  // ===================================================
-
-  const abrirWhatsAppBarbeiro = (
-    barbeiro
-  ) => {
-    if (!barbeiro?.whatsapp) {
-      alert(
-        "Este barbeiro ainda não possui WhatsApp cadastrado."
-      );
-
-      return;
-    }
-
-    const numero =
-      String(
-        barbeiro.whatsapp
-      ).replace(/\D/g, "");
-
-    if (!numero) {
-      alert(
-        "O WhatsApp deste barbeiro não está válido."
-      );
-
-      return;
-    }
-
-    const mensagem =
-      `Olá ${barbeiro.nome}! Vim pelo site da Sousa Barbearia e gostaria de falar com você.`;
-
-    window.open(
-      `https://wa.me/${numero}?text=${encodeURIComponent(
-        mensagem
-      )}`,
-      "_blank"
-    );
-  };
-
-  // ===================================================
-  // AGENDAR
-  // ===================================================
+  /* =======================================================
+     AGENDAR
+  ======================================================= */
 
   const agendar = async (e) => {
     e.preventDefault();
 
     if (!Nome.trim()) {
-      alert("Informe seu nome.");
+      alert(
+        "Informe seu nome."
+      );
+
       return;
     }
 
     if (!Telefone.trim()) {
-      alert("Informe seu WhatsApp.");
+      alert(
+        "Informe seu WhatsApp."
+      );
+
       return;
     }
 
-    if (Serviços.length === 0) {
+    if (
+      Serviços.length === 0
+    ) {
       alert(
         "Selecione pelo menos um serviço."
       );
+
       return;
     }
 
@@ -635,11 +678,15 @@ export default function Home() {
       alert(
         "Selecione um barbeiro."
       );
+
       return;
     }
 
     if (!Data) {
-      alert("Selecione uma data.");
+      alert(
+        "Selecione uma data."
+      );
+
       return;
     }
 
@@ -647,6 +694,7 @@ export default function Home() {
       alert(
         "Selecione um horário."
       );
+
       return;
     }
 
@@ -659,7 +707,7 @@ export default function Home() {
       !supabaseAnonKey
     ) {
       alert(
-        "Erro de configuração do Supabase. Verifique o arquivo .env.local e reinicie o servidor."
+        "Erro de configuração do Supabase."
       );
 
       return;
@@ -668,9 +716,9 @@ export default function Home() {
     setCarregando(true);
 
     try {
-      // ===============================================
-      // VERIFICAR HORÁRIO
-      // ===============================================
+      /* ===================================================
+         VERIFICAR DISPONIBILIDADE
+      =================================================== */
 
       const {
         data: horarioExistente,
@@ -692,13 +740,11 @@ export default function Home() {
 
       if (erroConsulta) {
         console.error(
-          "Erro ao verificar horário:",
           erroConsulta
         );
 
         alert(
-          "Não foi possível verificar a disponibilidade.\n\n" +
-            erroConsulta.message
+          "Não foi possível verificar a disponibilidade."
         );
 
         return;
@@ -719,36 +765,28 @@ export default function Home() {
         return;
       }
 
-      // ===============================================
-      // SERVIÇOS
-      // ===============================================
+      /* ===================================================
+         SALVAR
+      =================================================== */
 
       const serviçosSelecionados =
         Serviços.join(" + ");
 
-      // ===============================================
-      // AGENDAMENTO
-      // ===============================================
-
       const agendamento = {
         Nome: Nome.trim(),
+
         Telefone:
           Telefone.trim(),
+
         Serviço:
           serviçosSelecionados,
+
         Data,
+
         Horário,
+
         Colaborador,
       };
-
-      console.log(
-        "Agendamento:",
-        agendamento
-      );
-
-      // ===============================================
-      // SALVAR
-      // ===============================================
 
       const {
         error,
@@ -762,7 +800,7 @@ export default function Home() {
 
       if (error) {
         console.error(
-          "ERRO COMPLETO DO SUPABASE:",
+          "Erro Supabase:",
           error
         );
 
@@ -771,7 +809,7 @@ export default function Home() {
           "23505"
         ) {
           alert(
-            "Esse horário acabou de ser ocupado. Escolha outro horário."
+            "Esse horário acabou de ser ocupado. Escolha outro."
           );
 
           await atualizarHorariosOcupados();
@@ -786,7 +824,7 @@ export default function Home() {
           "42501"
         ) {
           alert(
-            "O Supabase bloqueou o agendamento pela RLS.\n\nVerifique as políticas INSERT da tabela Agendamentos."
+            "O Supabase bloqueou o agendamento pela RLS. Verifique a política INSERT da tabela Agendamentos."
           );
 
           return;
@@ -794,19 +832,15 @@ export default function Home() {
 
         alert(
           "Erro ao salvar o agendamento.\n\n" +
-            "Mensagem: " +
-            error.message +
-            "\n\nCódigo: " +
-            (error.code ||
-              "não informado")
+            error.message
         );
 
         return;
       }
 
-      // ===============================================
-      // WHATSAPP
-      // ===============================================
+      /* ===================================================
+         WHATSAPP
+      =================================================== */
 
       let numeroDestino =
         barbeiroSelecionado?.whatsapp
@@ -820,15 +854,11 @@ export default function Home() {
 
       if (!numeroDestino) {
         numeroDestino =
-          "559985289973";
+          WHATSAPP_PADRAO;
       }
 
-      // ===============================================
-      // MENSAGEM
-      // ===============================================
-
       const mensagem =
-        `*NOVO AGENDAMENTO RECEBIDO!*\n\n` +
+        `*NOVO AGENDAMENTO — SOUSA BARBEARIA*\n\n` +
         `*Cliente:* ${Nome}\n` +
         `*WhatsApp:* ${Telefone}\n` +
         `*Barbeiro:* ${
@@ -843,10 +873,10 @@ export default function Home() {
         `\n\n` +
         `*Data:* ${Data}\n` +
         `*Horário:* ${Horário}\n\n` +
-        `_Aguarde para confirmar!_`;
+        `_Aguardando confirmação._`;
 
       alert(
-        "Agendamento realizado com sucesso! Clique em OK para confirmar com o barbeiro."
+        "Sua reserva foi registrada com sucesso."
       );
 
       window.open(
@@ -856,246 +886,309 @@ export default function Home() {
         "_blank"
       );
 
-      // ===============================================
-      // LIMPAR
-      // ===============================================
+      /* ===================================================
+         LIMPAR
+      =================================================== */
 
-      setHorário("");
       setNome("");
       setTelefone("");
       setServiços([]);
       setColaborador("");
       setData("");
+      setHorário("");
       setHorariosOcupados([]);
+      setEtapaAtiva(1);
     } catch (error) {
       console.error(
-        "ERRO CRÍTICO:",
+        "Erro crítico:",
         error
       );
 
       alert(
-        "Erro crítico ao conectar com o Supabase. Abra o console do navegador (F12) para verificar o erro."
+        "Erro ao conectar com o sistema de agendamento."
       );
     } finally {
       setCarregando(false);
     }
   };
 
-  // ===================================================
-  // ASSINATURA
-  // ===================================================
+  /* =======================================================
+     PLANOS
+  ======================================================= */
 
   const conhecerPlanos = () => {
     const mensagem =
-      "Olá! Quero conhecer os planos de assinatura da Sousa Barbearia. Vi que existem assinaturas a partir de R$ 80,00 por mês com cortes ilimitados!";
+      "Olá! Quero conhecer os planos de assinatura da Sousa Barbearia.";
 
     window.open(
-      `https://wa.me/559985289973?text=${encodeURIComponent(
+      `https://wa.me/${WHATSAPP_PADRAO}?text=${encodeURIComponent(
         mensagem
       )}`,
       "_blank"
     );
   };
 
-  // ===================================================
-  // DATA MÍNIMA
-  // ===================================================
+  /* =======================================================
+     FORMATAÇÃO DA DATA
+  ======================================================= */
 
-  const dataMinima =
-    new Date().toLocaleDateString(
-      "en-CA"
-    );
+  const dataFormatada =
+    Data
+      ? new Date(
+          `${Data}T12:00:00`
+        ).toLocaleDateString(
+          "pt-BR",
+          {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          }
+        )
+      : "";
 
-  // ===================================================
-  // TELA
-  // ===================================================
+  /* =======================================================
+     JSX
+  ======================================================= */
 
   return (
-    <main className="min-h-screen bg-black px-4 py-8 text-white sm:px-6">
+    <main className="min-h-screen overflow-hidden bg-[#F5F3EE] text-[#1C1C1A]">
 
       {/* =================================================
-          FUNDO
+          BACKGROUND
       ================================================= */}
 
-      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+      <div className="pointer-events-none fixed inset-0">
 
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-amber-500/10 blur-[120px]" />
+        <div className="absolute left-1/2 top-[-350px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-[#D8BE8A]/[0.18] blur-[160px]" />
 
-        <div className="absolute left-[-180px] top-[35%] h-[400px] w-[400px] rounded-full bg-amber-600/5 blur-[120px]" />
+        <div className="absolute bottom-[-300px] left-[-200px] h-[600px] w-[600px] rounded-full bg-[#B08A45]/[0.08] blur-[150px]" />
 
-        <div className="absolute right-[-180px] top-[65%] h-[400px] w-[400px] rounded-full bg-yellow-500/5 blur-[120px]" />
+        <div className="absolute right-[-300px] top-[35%] h-[650px] w-[650px] rounded-full bg-[#D8BE8A]/[0.10] blur-[170px]" />
+
+        <div className="absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(40,35,25,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(40,35,25,.035)_1px,transparent_1px)] [background-size:80px_80px]" />
 
       </div>
 
-      <div className="relative z-10 mx-auto max-w-5xl">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
 
         {/* =================================================
-            CABEÇALHO
+            NAV
         ================================================= */}
 
-        <header className="relative mb-8 text-center">
+        <nav className="flex items-center justify-between">
 
-          <Link
-            href="/admin"
-            className="absolute right-0 top-0 z-20 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-black/60 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 backdrop-blur-sm transition hover:border-amber-500 hover:bg-amber-500/10 hover:text-amber-500 active:scale-95"
-          >
-            🔐 ADM
-          </Link>
+          <div className="flex items-center gap-3">
 
-          <div className="absolute left-1/2 top-[-30px] h-48 w-48 -translate-x-1/2 rounded-full bg-amber-500/20 blur-[80px]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#B08A45]/40 bg-white text-[#B08A45] shadow-sm">
 
-          <div className="relative mx-auto flex h-40 w-40 items-center justify-center">
-
-            <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-2xl" />
-
-            <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-amber-500/30 bg-black/60 p-3 shadow-[0_0_50px_rgba(245,158,11,0.15)]">
-
-              <img
-                src="/logo.png"
-                alt="Sousa Barbearia"
-                className="h-full w-full object-contain"
-              />
-
-            </div>
-
-          </div>
-
-          <p className="relative mt-3 text-[10px] font-bold uppercase tracking-[0.45em] text-amber-500">
-            Estilo • Precisão • Qualidade
-          </p>
-
-          <h1 className="mt-2 text-4xl font-black tracking-widest sm:text-5xl">
-            SOUSA
-
-            <span className="block bg-gradient-to-r from-amber-300 via-amber-500 to-yellow-600 bg-clip-text text-transparent">
-              BARBEARIA
-            </span>
-          </h1>
-
-          <div className="mx-auto mt-4 flex items-center justify-center gap-3">
-
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-500" />
-
-            <span className="text-amber-500">
-              ✦
-            </span>
-
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-amber-500" />
-
-          </div>
-
-          <p className="mt-3 text-sm text-zinc-400">
-            Agende seu horário online
-          </p>
-
-        </header>
-
-        {/* =================================================
-            OFERTA
-        ================================================= */}
-
-        <section className="relative mb-7 overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-zinc-900 via-[#090909] to-amber-950/30 shadow-[0_20px_80px_rgba(245,158,11,0.08)]">
-
-          <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl" />
-
-          <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-yellow-600/10 blur-3xl" />
-
-          <div className="relative p-6 sm:p-8">
-
-            <div className="mb-5 flex justify-center">
-
-              <span className="rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 px-5 py-2 text-[10px] font-black tracking-widest text-black shadow-lg shadow-amber-500/20">
-                🔥 OFERTA ESPECIAL
+              <span className="text-xs font-black">
+                S
               </span>
 
             </div>
 
-            <div className="grid items-center gap-6 md:grid-cols-3">
+            <div>
 
-              <div className="text-center md:text-left">
+              <p className="text-[10px] font-black tracking-[0.3em] text-[#1C1C1A]">
+                SOUSA
+              </p>
 
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-zinc-500">
-                  Plano mensal
-                </p>
+              <p className="text-[7px] uppercase tracking-[0.4em] text-[#8B877E]">
+                Barbearia
+              </p>
 
-                <h2 className="mt-2 text-3xl font-black">
-                  CORTES
+            </div>
 
-                  <span className="block bg-gradient-to-r from-amber-300 to-amber-600 bg-clip-text text-transparent">
-                    ILIMITADOS
+          </div>
+
+          <Link
+            href="/admin"
+            className="rounded-full border border-[#DCD7CC] bg-white px-4 py-2.5 text-[8px] font-bold uppercase tracking-[0.25em] text-[#77736A] shadow-sm backdrop-blur-xl transition hover:border-[#B08A45]/50 hover:text-[#B08A45]"
+          >
+            Administração
+          </Link>
+
+        </nav>
+
+        {/* =================================================
+            HERO
+        ================================================= */}
+
+        <section className="relative py-20 text-center sm:py-28 lg:py-36">
+
+          <div className="mx-auto mb-8 flex items-center justify-center gap-4">
+
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#B08A45]/60 sm:w-20" />
+
+            <span className="text-[8px] font-bold uppercase tracking-[0.5em] text-[#A17A3D]">
+              The barber experience
+            </span>
+
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#B08A45]/60 sm:w-20" />
+
+          </div>
+
+          <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-full border border-[#DED8CB] bg-white p-4 shadow-[0_25px_80px_rgba(55,45,25,.10)] sm:h-36 sm:w-36">
+
+            <img
+              src="/logo.png"
+              alt="Sousa Barbearia"
+              className="h-full w-full object-contain"
+            />
+
+          </div>
+
+          <p className="text-[9px] font-semibold uppercase tracking-[0.6em] text-[#858077]">
+            Estilo • Precisão • Presença
+          </p>
+
+          <h1 className="mx-auto mt-5 max-w-5xl text-5xl font-black leading-[0.9] tracking-[-0.06em] text-[#191917] sm:text-7xl lg:text-9xl">
+
+            SUA IMAGEM
+
+            <span className="block bg-gradient-to-b from-[#D1B77F] via-[#B08A45] to-[#765627] bg-clip-text text-transparent">
+              MERECE MAIS.
+            </span>
+
+          </h1>
+
+          <p className="mx-auto mt-8 max-w-xl text-sm leading-7 text-[#6E6A62] sm:text-base">
+            Uma experiência de barbearia pensada para quem valoriza
+            presença, precisão e estilo.
+          </p>
+
+          <a
+            href="#reserva"
+            className="mt-9 inline-flex items-center gap-4 rounded-full border border-[#B08A45]/50 bg-[#B08A45] px-7 py-4 text-[9px] font-black uppercase tracking-[0.3em] text-white shadow-[0_15px_40px_rgba(176,138,69,.18)] transition hover:bg-[#9F783D] active:scale-95"
+          >
+            Reservar horário
+
+            <span className="text-sm">
+              ↓
+            </span>
+          </a>
+
+          <div className="mx-auto mt-12 grid max-w-xl grid-cols-3 border-y border-[#DED9CF] py-5">
+
+            <div>
+
+              <p className="text-lg font-black text-[#1C1C1A]">
+                3+
+              </p>
+
+              <p className="mt-1 text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                Anos
+              </p>
+
+            </div>
+
+            <div className="border-x border-[#DED9CF]">
+
+              <p className="text-lg font-black text-[#1C1C1A]">
+                ∞
+              </p>
+
+              <p className="mt-1 text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                Estilo
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-lg font-black text-[#1C1C1A]">
+                01
+              </p>
+
+              <p className="mt-1 text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                Experiência
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            MEMBERSHIP
+        ================================================= */}
+
+        <section className="mb-8 overflow-hidden rounded-[2rem] border border-[#DCCFB7] bg-white shadow-[0_20px_70px_rgba(50,40,20,.06)]">
+
+          <div className="relative p-6 sm:p-8 lg:p-10">
+
+            <div className="absolute right-[-80px] top-[-100px] h-72 w-72 rounded-full bg-[#D8BE8A]/[0.14] blur-[100px]" />
+
+            <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+              <div>
+
+                <div className="flex items-center gap-3">
+
+                  <span className="rounded-full border border-[#B08A45]/35 bg-[#B08A45]/[0.05] px-3 py-1.5 text-[7px] font-black uppercase tracking-[0.3em] text-[#A17A3D]">
+                    EXCLUSIVO
                   </span>
-                </h2>
 
-              </div>
-
-              <div className="text-center">
-
-                <p className="text-sm leading-relaxed text-zinc-400">
-                  Tenha cortes ilimitados durante o mês pagando uma única assinatura.
-                </p>
-
-                <div className="mt-3 flex items-end justify-center">
-
-                  <span className="mb-2 text-xl font-bold text-amber-500">
-                    R$
-                  </span>
-
-                  <span className="text-6xl font-black text-amber-500">
-                    80
-                  </span>
-
-                  <span className="mb-2 ml-1 text-sm text-zinc-500">
-                    /mês
+                  <span className="text-[7px] uppercase tracking-[0.25em] text-[#8A857B]">
+                    
                   </span>
 
                 </div>
 
+                <h2 className="mt-5 text-3xl font-black tracking-[-0.04em] text-[#1C1C1A] sm:text-4xl">
+
+                  CORTE SEMPRE
+
+                  <span className="text-[#B08A45]">
+                    {" "}EM DIA.
+                  </span>
+
+                </h2>
+
+                <p className="mt-3 max-w-lg text-sm leading-6 text-[#77736A]">
+                  Assinaturas para quem prefere praticidade,
+                  exclusividade e presença impecável.
+                </p>
+
               </div>
 
-              <div>
+              <div className="flex items-center gap-6">
+
+                <div>
+
+                  <p className="text-[7px] uppercase tracking-[0.3em] text-[#858077]">
+                    A partir de
+                  </p>
+
+                  <div className="mt-1">
+
+                    <span className="text-sm text-[#B08A45]">
+                      R$
+                    </span>
+
+                    <span className="ml-1 text-5xl font-black text-[#1C1C1A]">
+                      80
+                    </span>
+
+                    <span className="ml-1 text-xs text-[#858077]">
+                      /mês
+                    </span>
+
+                  </div>
+
+                </div>
 
                 <button
                   type="button"
-                  onClick={conhecerPlanos}
-                  className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 py-4 text-sm font-black tracking-wider text-black shadow-xl shadow-amber-500/20 transition hover:scale-[1.02] active:scale-95"
+                  onClick={
+                    conhecerPlanos
+                  }
+                  className="rounded-xl border border-[#B08A45]/40 bg-[#B08A45]/[0.08] px-5 py-4 text-[8px] font-black uppercase tracking-[0.2em] text-[#9A7136] transition hover:bg-[#B08A45] hover:text-white"
                 >
-                  CONHEÇA NOSSOS PLANOS →
+                  Conhecer
                 </button>
 
-              </div>
-
-            </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-2">
-
-              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">
-                  ✂️
-                </p>
-
-                <p className="mt-1 text-[9px] font-bold text-zinc-400">
-                  ILIMITADOS
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">
-                  💰
-                </p>
-
-                <p className="mt-1 text-[9px] font-bold text-zinc-400">
-                  ECONOMIZE
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center">
-                <p className="text-lg">
-                  👑
-                </p>
-
-                <p className="mt-1 text-[9px] font-bold text-zinc-400">
-                  EXCLUSIVO
-                </p>
               </div>
 
             </div>
@@ -1105,69 +1198,137 @@ export default function Home() {
         </section>
 
         {/* =================================================
-            FORMULÁRIO
+            RESERVA
         ================================================= */}
 
-        <section className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/70 shadow-2xl backdrop-blur-xl">
+        <section
+          id="reserva"
+          className="overflow-hidden rounded-[2rem] border border-[#DDD8CE] bg-white shadow-[0_35px_100px_rgba(40,35,25,.08)]"
+        >
 
-          <form
-            onSubmit={agendar}
-            className="p-5 sm:p-7"
-          >
+          {/* HEADER RESERVA */}
 
-            {/* =================================================
-                DADOS
-            ================================================= */}
+          <div className="border-b border-[#E8E4DC] p-6 sm:p-8 lg:p-10">
 
-            <div className="mb-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
 
-              <div className="mb-5 flex items-center gap-3">
+              <div>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
-                  01
+                <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-[#A17A3D]">
+                  
+                </p>
+
+                <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#1C1C1A] sm:text-4xl">
+
+                  RESERVE SUA
+
+                  <span className="block text-[#B08A45]">
+                    EXPERIÊNCIA.
+                  </span>
+
+                </h2>
+
+              </div>
+
+              <div className="w-full max-w-xs">
+
+                <div className="mb-2 flex justify-between text-[7px] uppercase tracking-[0.2em] text-[#858077]">
+
+                  <span>
+                    Progresso
+                  </span>
+
+                  <span>
+                    {progresso}%
+                  </span>
+
                 </div>
 
-                <div>
+                <div className="h-[3px] overflow-hidden rounded-full bg-[#E9E5DC]">
 
-                  <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                    Primeiro passo
-                  </p>
-
-                  <h2 className="text-lg font-black">
-                    Seus dados
-                  </h2>
+                  <div
+                    className="h-full rounded-full bg-[#B08A45] transition-all duration-500"
+                    style={{
+                      width: `${progresso}%`,
+                    }}
+                  />
 
                 </div>
 
               </div>
 
+            </div>
+
+          </div>
+
+          <form
+            onSubmit={agendar}
+            className="p-6 sm:p-8 lg:p-10"
+          >
+
+            {/* =================================================
+                IDENTIFICAÇÃO
+            ================================================= */}
+
+            <div className="mb-14">
+
+              <div className="mb-7 flex items-center gap-4">
+
+                <span className="text-[10px] font-black text-[#B08A45]">
+                  01
+                </span>
+
+                <span className="h-px w-8 bg-[#B08A45]/30" />
+
+                <h3 className="text-[9px] font-black uppercase tracking-[0.35em] text-[#69655E]">
+                  Seus dados
+                </h3>
+
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-2">
 
-                <input
-                  type="text"
-                  placeholder="👤 Seu Nome Completo"
-                  value={Nome}
-                  onChange={(e) =>
-                    setNome(
-                      e.target.value
-                    )
-                  }
-                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-500"
-                  required
-                />
+                <div className="relative border-b border-[#DCD8D0] transition focus-within:border-[#B08A45]">
 
-                <input
-                  type="tel"
-                  placeholder="📱 Seu WhatsApp com DDD"
-                  value={Telefone}
-                  onChange={(e) =>
-                    setTelefone(
-                      e.target.value
-                    )
-                  }
-                  className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-500"
-                  required
-                />
+                  <label className="pointer-events-none absolute left-0 top-0 text-[7px] font-bold uppercase tracking-[0.25em] text-[#858077]">
+                    Nome
+                  </label>
+
+                  <input
+                    type="text"
+                    value={Nome}
+                    onChange={(e) =>
+                      setNome(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Como podemos chamar você?"
+                    className="w-full bg-transparent pb-4 pt-5 text-sm font-medium text-[#1C1C1A] outline-none placeholder:text-[#B0ACA4]"
+                    required
+                  />
+
+                </div>
+
+                <div className="relative border-b border-[#DCD8D0] transition focus-within:border-[#B08A45]">
+
+                  <label className="pointer-events-none absolute left-0 top-0 text-[7px] font-bold uppercase tracking-[0.25em] text-[#858077]">
+                    WhatsApp
+                  </label>
+
+                  <input
+                    type="tel"
+                    value={Telefone}
+                    onChange={(e) =>
+                      setTelefone(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Seu número com DDD"
+                    className="w-full bg-transparent pb-4 pt-5 text-sm font-medium text-[#1C1C1A] outline-none placeholder:text-[#B0ACA4]"
+                    required
+                  />
+
+                </div>
 
               </div>
 
@@ -1177,46 +1338,44 @@ export default function Home() {
                 SERVIÇOS
             ================================================= */}
 
-            <div className="mb-8">
+            <div className="mb-14">
 
-              <div className="mb-5 flex items-center gap-3">
+              <div className="mb-7 flex items-center gap-4">
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
+                <span className="text-[10px] font-black text-[#B08A45]">
                   02
-                </div>
+                </span>
+
+                <span className="h-px w-8 bg-[#B08A45]/30" />
 
                 <div>
 
-                  <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                    Segundo passo
-                  </p>
+                  <h3 className="text-[9px] font-black uppercase tracking-[0.35em] text-[#69655E]">
+                    Escolha sua experiência
+                  </h3>
 
-                  <h2 className="text-lg font-black">
-                    Escolha os serviços
-                  </h2>
+                  <p className="mt-2 text-[10px] text-[#858077]">
+
+                    {quantidadeServicos > 0
+                      ? `${quantidadeServicos} serviço(s) selecionado(s)`
+                      : "Selecione um ou mais serviços"}
+
+                  </p>
 
                 </div>
 
               </div>
 
-              <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-
-                <p className="text-center text-xs text-zinc-400">
-                  💡 Você pode selecionar{" "}
-                  <span className="font-black text-amber-500">
-                    mais de um serviço
-                  </span>
-                  .
-                </p>
-
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid gap-px overflow-hidden rounded-2xl border border-[#E4E0D8] bg-[#E4E0D8] sm:grid-cols-2 lg:grid-cols-3">
 
                 {SERVICOS.map(
-                  ([nome, preco, icone]) => {
+                  (servico) => {
+
                     const valor =
-                      `${nome} - ${preco}`;
+                      servico.nome ===
+                      "Combo"
+                        ? `Combo - ${servico.descricao}`
+                        : `${servico.nome} - ${servico.preco}`;
 
                     const selecionado =
                       Serviços.includes(
@@ -1224,94 +1383,69 @@ export default function Home() {
                       );
 
                     return (
+
                       <button
-                        key={nome}
+                        key={
+                          servico.numero
+                        }
                         type="button"
                         onClick={() =>
                           selecionarServico(
-                            valor
+                            servico
                           )
                         }
-                        className={`relative rounded-xl border p-3 text-left transition-all active:scale-95 ${
+                        className={`group relative min-h-[105px] bg-white p-5 text-left transition-all ${
                           selecionado
-                            ? "border-amber-500 bg-amber-500/10"
-                            : "border-zinc-800 bg-black/40 hover:border-amber-500/40"
+                            ? "bg-[#B08A45]/[0.08]"
+                            : "hover:bg-[#F9F7F2]"
                         }`}
                       >
 
-                        {selecionado && (
-                          <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-black">
-                            ✓
-                          </span>
-                        )}
+                        <div className="flex items-start justify-between">
 
-                        <div className="text-xl">
-                          {icone}
+                          <span className="text-[8px] font-black tracking-[0.2em] text-[#AAA59C]">
+                            {servico.numero}
+                          </span>
+
+                          <span
+                            className={`text-[8px] font-black uppercase tracking-[0.15em] ${
+                              selecionado
+                                ? "text-[#B08A45]"
+                                : "text-[#9B978F]"
+                            }`}
+                          >
+                            {selecionado
+                              ? "Selecionado"
+                              : "Selecionar"}
+                          </span>
+
                         </div>
 
-                        <p className="mt-2 pr-4 text-[11px] font-bold leading-tight text-zinc-200">
-                          {nome}
+                        <p className="mt-6 text-xs font-black text-[#252421]">
+                          {servico.nome}
                         </p>
 
-                        <p className="mt-1 text-xs font-black text-amber-500">
-                          {preco}
+                        {servico.descricao && (
+                          <p className="mt-1 text-[8px] text-[#858077]">
+                            {servico.descricao}
+                          </p>
+                        )}
+
+                        <p className="mt-2 text-[10px] font-bold text-[#B08A45]">
+                          {servico.preco}
                         </p>
+
+                        {selecionado && (
+                          <div className="absolute bottom-0 left-0 h-[3px] w-full bg-[#B08A45]" />
+                        )}
 
                       </button>
+
                     );
                   }
                 )}
 
               </div>
-
-              {Serviços.length > 0 && (
-                <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-
-                  <div className="flex items-center justify-between">
-
-                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">
-                      Serviços selecionados
-                    </p>
-
-                    <span className="rounded-full bg-amber-500 px-2 py-1 text-[9px] font-black text-black">
-                      {Serviços.length}
-                    </span>
-
-                  </div>
-
-                  <div className="mt-3 space-y-2">
-
-                    {Serviços.map(
-                      (servico) => (
-                        <div
-                          key={servico}
-                          className="flex items-center justify-between rounded-lg border border-zinc-800 bg-black/40 px-3 py-2"
-                        >
-
-                          <span className="text-xs font-bold text-zinc-300">
-                            ✓ {servico}
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              selecionarServico(
-                                servico
-                              )
-                            }
-                            className="ml-2 text-xs font-black text-red-400"
-                          >
-                            ✕
-                          </button>
-
-                        </div>
-                      )
-                    )}
-
-                  </div>
-
-                </div>
-              )}
 
             </div>
 
@@ -1319,50 +1453,44 @@ export default function Home() {
                 BARBEIROS
             ================================================= */}
 
-            <div className="mb-8">
+            <div className="mb-14">
 
-              <div className="mb-5 flex items-center gap-3">
+              <div className="mb-7 flex items-center gap-4">
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
+                <span className="text-[10px] font-black text-[#B08A45]">
                   03
-                </div>
+                </span>
 
-                <div>
+                <span className="h-px w-8 bg-[#B08A45]/30" />
 
-                  <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                    Terceiro passo
-                  </p>
-
-                  <h2 className="text-lg font-black">
-                    Escolha o barbeiro
-                  </h2>
-
-                </div>
+                <h3 className="text-[9px] font-black uppercase tracking-[0.35em] text-[#69655E]">
+                  Escolha seu profissional
+                </h3>
 
               </div>
 
               {carregandoBarbeiros ? (
 
-                <div className="rounded-2xl border border-zinc-800 bg-black/40 p-8 text-center">
+                <div className="py-16 text-center">
 
-                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-800 border-t-amber-500" />
+                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border border-[#DED9CF] border-t-[#B08A45]" />
 
-                  <p className="mt-3 text-xs text-zinc-500">
-                    Carregando barbeiros...
+                  <p className="mt-4 text-[8px] uppercase tracking-[0.3em] text-[#858077]">
+                    Preparando equipe
                   </p>
 
                 </div>
 
               ) : barbeiros.length === 0 ? (
 
-                <div className="rounded-2xl border border-dashed border-zinc-800 bg-black/40 p-8 text-center">
+                <div className="rounded-2xl border border-dashed border-[#DCD8D0] p-10 text-center">
 
-                  <div className="text-4xl">
-                    💈
-                  </div>
+                  <p className="text-3xl text-[#B08A45]">
+                    ✦
+                  </p>
 
-                  <p className="mt-3 text-sm font-bold text-zinc-400">
-                    Nenhum barbeiro disponível.
+                  <p className="mt-3 text-xs text-[#77736A]">
+                    Nenhum profissional disponível.
                   </p>
 
                 </div>
@@ -1370,12 +1498,12 @@ export default function Home() {
               ) : (
 
                 <div
-                  className={`grid gap-3 ${
+                  className={`grid gap-4 ${
                     barbeiros.length === 1
-                      ? "grid-cols-1 sm:max-w-sm"
+                      ? "grid-cols-1 max-w-sm"
                       : barbeiros.length === 2
                       ? "grid-cols-2"
-                      : "grid-cols-2 sm:grid-cols-3"
+                      : "grid-cols-2 lg:grid-cols-3"
                   }`}
                 >
 
@@ -1391,48 +1519,39 @@ export default function Home() {
                         );
 
                       return (
+
                         <div
                           key={
                             barbeiro._key
                           }
-                          className={`relative overflow-hidden rounded-2xl border transition-all ${
+                          className={`group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
                             selecionado
-                              ? "border-amber-500 bg-amber-500/10 shadow-xl shadow-amber-500/10"
-                              : "border-zinc-800 bg-black/40 hover:border-amber-500/40"
+                              ? "border-[#B08A45]/70 bg-[#B08A45]/[0.04] shadow-[0_15px_45px_rgba(176,138,69,.12)]"
+                              : "border-[#E0DCD4] hover:border-[#C8B28A]"
                           }`}
                         >
-
-                          {/* =================================
-                              SELECIONAR
-                          ================================= */}
 
                           <button
                             type="button"
                             onClick={() => {
+
                               setColaborador(
                                 String(
                                   barbeiro.id
                                 )
                               );
 
-                              setHorário(
-                                ""
+                              setHorário("");
+
+                              setEtapaAtiva(
+                                3
                               );
+
                             }}
-                            className="relative block w-full p-3 text-left"
+                            className="w-full text-left"
                           >
 
-                            {selecionado && (
-                              <span className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-xs font-black text-black shadow-lg">
-                                ✓
-                              </span>
-                            )}
-
-                            {/* =================================
-                                FOTO
-                            ================================= */}
-
-                            <div className="mx-auto aspect-square w-full max-w-[180px] overflow-hidden rounded-full border-2 border-amber-500/40 bg-zinc-950 p-1">
+                            <div className="relative aspect-[4/5] overflow-hidden bg-[#EDEAE3]">
 
                               {barbeiro.fotoUrl ? (
 
@@ -1441,44 +1560,15 @@ export default function Home() {
                                     barbeiro.fotoUrl
                                   }
                                   alt={
-                                    barbeiro.nome ||
-                                    "Barbeiro"
+                                    barbeiro.nome
                                   }
-                                  className="block h-full w-full rounded-full object-cover"
+                                  className="h-full w-full object-cover grayscale-[10%] transition duration-700 group-hover:scale-105 group-hover:grayscale-0"
                                   loading="eager"
                                   decoding="async"
                                   referrerPolicy="no-referrer"
-                                  onLoad={(
-                                    e
-                                  ) => {
-                                    console.log(
-                                      "✅ FOTO CARREGADA:",
-                                      barbeiro.nome
-                                    );
-
-                                    console.log(
-                                      "URL:",
-                                      e.currentTarget
-                                        .src
-                                    );
-                                  }}
                                   onError={(
                                     e
                                   ) => {
-                                    console.error(
-                                      "❌ ERRO AO CARREGAR FOTO:",
-                                      {
-                                        nome:
-                                          barbeiro.nome,
-                                        fotoBanco:
-                                          barbeiro.foto,
-                                        fotoUrl:
-                                          barbeiro.fotoUrl,
-                                        urlTentada:
-                                          e.currentTarget
-                                            .src,
-                                      }
-                                    );
 
                                     e.currentTarget.style.display =
                                       "none";
@@ -1493,6 +1583,7 @@ export default function Home() {
                                         "[data-fallback]"
                                       )
                                     ) {
+
                                       const fallback =
                                         document.createElement(
                                           "div"
@@ -1504,41 +1595,53 @@ export default function Home() {
                                       );
 
                                       fallback.className =
-                                        "flex h-full w-full items-center justify-center rounded-full text-5xl";
+                                        "flex h-full w-full items-center justify-center text-5xl text-[#B08A45]";
 
                                       fallback.textContent =
-                                        "💈";
+                                        "✦";
 
                                       pai.appendChild(
                                         fallback
                                       );
+
                                     }
+
                                   }}
                                 />
 
                               ) : (
 
-                                <div className="flex h-full w-full items-center justify-center rounded-full text-5xl">
-                                  💈
+                                <div className="flex h-full w-full items-center justify-center text-5xl text-[#B08A45]">
+                                  ✦
                                 </div>
 
                               )}
 
+                              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                              {selecionado && (
+
+                                <div className="absolute left-4 top-4 rounded-full bg-[#B08A45] px-3 py-1.5 text-[7px] font-black uppercase tracking-[0.2em] text-white">
+                                  Selecionado
+                                </div>
+
+                              )}
+
+                              <div className="absolute bottom-5 left-5 right-5">
+
+                                <p className="text-lg font-black tracking-tight text-white">
+                                  {barbeiro.nome}
+                                </p>
+
+                                <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.3em] text-[#DCC28D]">
+                                  Barber specialist
+                                </p>
+
+                              </div>
+
                             </div>
 
-                            {/* =================================
-                                NOME
-                            ================================= */}
-
-                            <p className="mt-3 text-center text-sm font-black text-zinc-200">
-                              {barbeiro.nome}
-                            </p>
-
                           </button>
-
-                          {/* =================================
-                              WHATSAPP
-                          ================================= */}
 
                           <button
                             type="button"
@@ -1547,13 +1650,15 @@ export default function Home() {
                                 barbeiro
                               )
                             }
-                            className="mx-3 mb-3 flex w-[calc(100%-1.5rem)] items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 py-2.5 text-[10px] font-black uppercase tracking-wider text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
+                            className="m-3 flex w-[calc(100%-1.5rem)] items-center justify-center gap-2 rounded-lg border border-[#E1DDD5] bg-[#FAF9F6] py-3 text-[7px] font-black uppercase tracking-[0.25em] text-[#77736A] transition hover:border-green-500/30 hover:text-green-600"
                           >
-                            💬 Falar no WhatsApp
+                            WhatsApp
                           </button>
 
                         </div>
+
                       );
+
                     }
                   )}
 
@@ -1567,130 +1672,172 @@ export default function Home() {
                 DATA
             ================================================= */}
 
-            <div className="mb-8">
+            <div className="mb-14">
 
-              <div className="mb-5 flex items-center gap-3">
+              <div className="mb-7 flex items-center gap-4">
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
+                <span className="text-[10px] font-black text-[#B08A45]">
                   04
+                </span>
+
+                <span className="h-px w-8 bg-[#B08A45]/30" />
+
+                <h3 className="text-[9px] font-black uppercase tracking-[0.35em] text-[#69655E]">
+                  Escolha a data
+                </h3>
+
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+
+                <div className="relative rounded-xl border border-[#DDD9D1] bg-[#FAF9F6]">
+
+                  <label className="pointer-events-none absolute left-4 top-3 text-[7px] font-bold uppercase tracking-[0.25em] text-[#858077]">
+                    Data da visita
+                  </label>
+
+                  <input
+                    type="date"
+                    value={Data}
+                    min={dataMinima}
+                    onChange={(e) => {
+
+                      setData(
+                        e.target.value
+                      );
+
+                      setEtapaAtiva(
+                        4
+                      );
+
+                    }}
+                    className="w-full bg-transparent px-4 pb-4 pt-8 text-sm font-bold text-[#1C1C1A] outline-none [color-scheme:light]"
+                    required
+                  />
+
                 </div>
 
-                <div>
+                <div className="hidden items-center rounded-xl border border-[#E0DCD4] bg-white px-6 sm:flex">
 
-                  <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                    Quarto passo
-                  </p>
+                  <div>
 
-                  <h2 className="text-lg font-black">
-                    Escolha a data
-                  </h2>
+                    <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                      Horário de funcionamento
+                    </p>
+
+                    <p className="mt-1 text-[10px] font-bold text-[#6F6B63]">
+                      Seg — Sáb · 08:00 — 19:30
+                    </p>
+
+                  </div>
 
                 </div>
 
               </div>
 
-              <input
-                type="date"
-                value={Data}
-                min={dataMinima}
-                onChange={(e) =>
-                  setData(
-                    e.target.value
-                  )
-                }
-                className="w-full rounded-xl border border-zinc-800 bg-black/50 p-4 text-sm text-white outline-none focus:border-amber-500"
-                required
-              />
+              {Data && (
+
+                <div className="mt-4 rounded-xl border border-[#E4D7BE] bg-[#B08A45]/[0.06] px-4 py-3">
+
+                  <p className="text-[8px] uppercase tracking-[0.2em] text-[#A17A3D]">
+                    Sua visita
+                  </p>
+
+                  <p className="mt-1 text-sm font-bold text-[#4F4B44]">
+                    {dataFormatada}
+                  </p>
+
+                </div>
+
+              )}
 
             </div>
 
             {/* =================================================
-                HORÁRIOS
+                HORÁRIO
             ================================================= */}
 
             {Data &&
               Colaborador && (
-                <div className="mb-8">
 
-                  <div className="mb-5 flex items-center gap-3">
+                <div className="mb-14">
 
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-xs font-black text-black">
+                  <div className="mb-7 flex items-center gap-4">
+
+                    <span className="text-[10px] font-black text-[#B08A45]">
                       05
-                    </div>
+                    </span>
 
-                    <div>
+                    <span className="h-px w-8 bg-[#B08A45]/30" />
 
-                      <p className="text-[9px] uppercase tracking-widest text-amber-500">
-                        Último passo
-                      </p>
-
-                      <h2 className="text-lg font-black">
-                        Escolha o horário
-                      </h2>
-
-                    </div>
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.35em] text-[#69655E]">
+                      Escolha seu horário
+                    </h3>
 
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-7">
 
                     {horariosDisponiveisDoDia.map(
                       (hora) => {
 
-                        const estaOcupado =
+                        const ocupado =
                           horariosOcupados.includes(
                             hora
                           );
 
                         const selecionado =
-                          Horário ===
-                          hora;
+                          Horário === hora;
 
                         return (
+
                           <button
                             key={hora}
                             type="button"
                             disabled={
-                              estaOcupado
+                              ocupado
                             }
-                            onClick={() =>
+                            onClick={() => {
+
                               setHorário(
                                 hora
-                              )
-                            }
-                            className={`rounded-xl border py-3 text-sm font-black transition-all ${
-                              estaOcupado
-                                ? "cursor-not-allowed border-zinc-900 bg-black text-zinc-700 line-through"
+                              );
+
+                              setEtapaAtiva(
+                                5
+                              );
+
+                            }}
+                            className={`relative overflow-hidden rounded-lg border py-4 text-xs font-black transition-all ${
+                              ocupado
+                                ? "cursor-not-allowed border-[#EDEAE4] bg-[#F5F3EE] text-[#B8B4AC]"
                                 : selecionado
-                                ? "border-amber-500 bg-gradient-to-r from-amber-400 to-yellow-600 text-black shadow-lg"
-                                : "border-zinc-800 bg-black/40 text-zinc-300 hover:border-amber-500 hover:text-amber-500"
+                                ? "border-[#B08A45] bg-[#B08A45] text-white shadow-[0_10px_40px_rgba(176,138,69,.18)]"
+                                : "border-[#E0DCD4] bg-white text-[#77736A] hover:border-[#B08A45]/50 hover:text-[#A17A3D]"
                             }`}
                           >
+
                             {hora}
+
+                            {ocupado && (
+
+                              <span className="absolute bottom-1 left-0 w-full text-[5px] uppercase tracking-[0.15em] text-[#AAA59C]">
+                                ocupado
+                              </span>
+
+                            )}
+
                           </button>
+
                         );
+
                       }
                     )}
 
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-zinc-500">
-
-                    <span>
-                      🟨 Disponível
-                    </span>
-
-                    <span>
-                      🟨 Selecionado
-                    </span>
-
-                    <span>
-                      ⬛ Ocupado
-                    </span>
-
-                  </div>
-
                 </div>
+
               )}
 
             {/* =================================================
@@ -1702,32 +1849,102 @@ export default function Home() {
               Data &&
               Horário && (
 
-                <div className="mb-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-5">
+                <div className="mb-6 overflow-hidden rounded-2xl border border-[#DCCFB7] bg-[#FBF8F0]">
 
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">
-                    Resumo do agendamento
-                  </p>
+                  <div className="p-6 sm:p-8">
 
-                  <div className="grid gap-4 sm:grid-cols-4">
+                    <div className="flex items-start justify-between border-b border-[#E5DFD4] pb-6">
 
-                    <div>
+                      <div>
 
-                      <p className="text-[10px] text-zinc-600">
-                        Serviços
+                        <p className="text-[7px] font-black uppercase tracking-[0.4em] text-[#A17A3D]">
+                          Final review
+                        </p>
+
+                        <h3 className="mt-2 text-xl font-black text-[#1C1C1A]">
+                          Sua experiência
+                        </h3>
+
+                      </div>
+
+                      <span className="text-2xl text-[#B08A45]">
+                        ✦
+                      </span>
+
+                    </div>
+
+                    <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+                      <div>
+
+                        <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                          Cliente
+                        </p>
+
+                        <p className="mt-2 text-xs font-bold text-[#45423D]">
+                          {Nome}
+                        </p>
+
+                      </div>
+
+                      <div>
+
+                        <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                          Profissional
+                        </p>
+
+                        <p className="mt-2 text-xs font-bold text-[#45423D]">
+                          {barbeiroSelecionado?.nome}
+                        </p>
+
+                      </div>
+
+                      <div>
+
+                        <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                          Data
+                        </p>
+
+                        <p className="mt-2 text-xs font-bold text-[#45423D]">
+                          {dataFormatada}
+                        </p>
+
+                      </div>
+
+                      <div>
+
+                        <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                          Horário
+                        </p>
+
+                        <p className="mt-1 text-2xl font-black text-[#B08A45]">
+                          {Horário}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="mt-6 border-t border-[#E5DFD4] pt-5">
+
+                      <p className="text-[7px] uppercase tracking-[0.25em] text-[#858077]">
+                        Serviços selecionados
                       </p>
 
-                      <div className="mt-1 space-y-1">
+                      <div className="mt-3 flex flex-wrap gap-2">
 
                         {Serviços.map(
                           (servico) => (
-                            <p
+
+                            <span
                               key={
                                 servico
                               }
-                              className="text-xs font-bold text-zinc-200"
+                              className="rounded-md border border-[#DED9CF] bg-white px-3 py-2 text-[9px] font-bold text-[#5E5A53]"
                             >
-                              • {servico}
-                            </p>
+                              {servico}
+                            </span>
+
                           )
                         )}
 
@@ -1735,50 +1952,14 @@ export default function Home() {
 
                     </div>
 
-                    <div>
-
-                      <p className="text-[10px] text-zinc-600">
-                        Barbeiro
-                      </p>
-
-                      <p className="mt-1 text-xs font-bold text-zinc-200">
-                        {barbeiroSelecionado?.nome ||
-                          Colaborador}
-                      </p>
-
-                    </div>
-
-                    <div>
-
-                      <p className="text-[10px] text-zinc-600">
-                        Data
-                      </p>
-
-                      <p className="mt-1 text-xs font-bold text-zinc-200">
-                        {Data}
-                      </p>
-
-                    </div>
-
-                    <div>
-
-                      <p className="text-[10px] text-zinc-600">
-                        Horário
-                      </p>
-
-                      <p className="mt-1 text-sm font-black text-amber-500">
-                        {Horário}
-                      </p>
-
-                    </div>
-
                   </div>
 
                 </div>
+
               )}
 
             {/* =================================================
-                CONFIRMAR
+                BOTÃO
             ================================================= */}
 
             <button
@@ -1788,150 +1969,163 @@ export default function Home() {
                 Serviços.length === 0 ||
                 !Horário
               }
-              className="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 py-5 text-sm font-black tracking-widest text-black shadow-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:bg-none disabled:text-zinc-600 disabled:shadow-none"
+              className="group relative w-full overflow-hidden rounded-xl bg-[#B08A45] py-5 text-[9px] font-black uppercase tracking-[0.35em] text-white shadow-[0_15px_45px_rgba(176,138,69,.16)] transition hover:bg-[#9F783D] active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#E6E2DA] disabled:text-[#AAA59C] disabled:shadow-none"
             >
-              {carregando
-                ? "SALVANDO..."
-                : Horário
-                ? "CONFIRMAR AGENDAMENTO →"
-                : "SELECIONE O HORÁRIO"}
+
+              <span className="relative z-10">
+
+                {carregando
+                  ? "Registrando sua reserva..."
+                  : Horário
+                  ? "Confirmar minha experiência →"
+                  : "Complete sua reserva"}
+
+              </span>
+
             </button>
+
+            <p className="mt-4 text-center text-[7px] uppercase tracking-[0.25em] text-[#969189]">
+              Sua reserva será registrada e enviada ao barbeiro via WhatsApp.
+            </p>
 
           </form>
 
         </section>
 
         {/* =================================================
-            CONTATOS
+            INSTAGRAM / WHATSAPP
         ================================================= */}
 
-        <section className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-5 shadow-xl backdrop-blur-xl">
+        <section className="mt-8 grid gap-4 sm:grid-cols-2">
 
-          <div className="text-center">
+          <a
+            href="https://instagram.com/sousabarbearia13"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative overflow-hidden rounded-2xl border border-[#DEDAD2] bg-white p-7 shadow-sm transition hover:border-[#C9B890] hover:shadow-md"
+          >
 
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">
-              Fale conosco
+            <div className="absolute right-[-30px] top-[-30px] h-32 w-32 rounded-full bg-[#B08A45]/[0.07] blur-3xl" />
+
+            <p className="text-[7px] font-bold uppercase tracking-[0.35em] text-[#858077]">
+              Follow the style
             </p>
 
-            <h2 className="mt-2 text-xl font-black">
-              Sousa Barbearia
-            </h2>
+            <h3 className="mt-3 text-xl font-black text-[#1C1C1A]">
+              @sousabarbearia13
+            </h3>
+
+            <p className="mt-2 text-xs text-[#77736A]">
+              Acompanhe nosso trabalho.
+            </p>
+
+            <span className="mt-6 inline-block text-[8px] font-black uppercase tracking-[0.25em] text-[#A17A3D]">
+              Instagram →
+            </span>
+
+          </a>
+
+          <a
+            href={`https://wa.me/${WHATSAPP_PADRAO}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative overflow-hidden rounded-2xl border border-[#DEDAD2] bg-white p-7 shadow-sm transition hover:border-green-500/30 hover:shadow-md"
+          >
+
+            <p className="text-[7px] font-bold uppercase tracking-[0.35em] text-[#858077]">
+              Direct contact
+            </p>
+
+            <h3 className="mt-3 text-xl font-black text-[#1C1C1A]">
+              Fale conosco.
+            </h3>
+
+            <p className="mt-2 text-xs text-[#77736A]">
+              Tire suas dúvidas diretamente pelo WhatsApp.
+            </p>
+
+            <span className="mt-6 inline-block text-[8px] font-black uppercase tracking-[0.25em] text-green-600">
+              WhatsApp →
+            </span>
+
+          </a>
+
+        </section>
+
+        {/* =================================================
+            LOCALIZAÇÃO
+        ================================================= */}
+
+        <section className="mt-8 rounded-2xl border border-[#DEDAD2] bg-white p-6 text-center shadow-sm sm:p-8">
+
+          <p className="text-[7px] font-bold uppercase tracking-[0.4em] text-[#A17A3D]">
+            Onde estamos
+          </p>
+
+          <h3 className="mt-3 text-lg font-black text-[#1C1C1A]">
+            Sousa Barbearia
+          </h3>
+
+          <p className="mt-2 text-xs text-[#77736A]">
+            Av. Getúlio Vargas, 2842 · Centro · Matões - MA
+          </p>
+
+          <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-4">
+
+            <div className="h-px flex-1 bg-[#E2DED6]" />
+
+            <span className="text-[9px] text-[#B08A45]">
+              ✦
+            </span>
+
+            <div className="h-px flex-1 bg-[#E2DED6]" />
 
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-6 flex flex-col justify-center gap-3 text-[8px] font-bold uppercase tracking-[0.2em] text-[#858077] sm:flex-row sm:gap-8">
 
-            <a
-              href="https://instagram.com/sousabarbearia13"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-pink-500/50"
-            >
-              <div className="text-2xl">
-                📸
-              </div>
+            <span>
+              Seg — Sáb · 08:00 — 19:30
+            </span>
 
-              <p className="mt-2 text-[10px] font-black text-zinc-300">
-                INSTAGRAM
-              </p>
-            </a>
-
-            <a
-              href="https://wa.me/559985289973"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-center transition hover:border-green-500/50"
-            >
-              <div className="text-2xl">
-                💬
-              </div>
-
-              <p className="mt-2 text-[10px] font-black text-zinc-300">
-                WHATSAPP
-              </p>
-            </a>
-
-          </div>
-
-          <div className="mt-5 border-t border-zinc-800 pt-5 text-center">
-
-            <p className="text-xs text-zinc-300">
-              📍 Av. Getúlio Vargas, 2842
-            </p>
-
-            <p className="mt-1 text-xs text-zinc-500">
-              Centro, Matões - MA
-            </p>
-
-          </div>
-
-          <div className="mt-4 rounded-xl border border-zinc-800 bg-black/40 p-4 text-center">
-
-            <p className="text-[9px] font-black uppercase tracking-widest text-amber-500">
-              Horário de funcionamento
-            </p>
-
-            <div className="mt-4 grid grid-cols-2 divide-x divide-zinc-800">
-
-              <div>
-
-                <p className="text-xs font-bold text-zinc-300">
-                  Segunda a Sábado
-                </p>
-
-                <p className="mt-1 text-xs text-zinc-500">
-                  08:00 às 19:30
-                </p>
-
-              </div>
-
-              <div>
-
-                <p className="text-xs font-bold text-zinc-300">
-                  Domingo
-                </p>
-
-                <p className="mt-1 text-xs text-zinc-500">
-                  08:00 às 11:30
-                </p>
-
-              </div>
-
-            </div>
+            <span>
+              Domingo · 08:00 — 11:30
+            </span>
 
           </div>
 
         </section>
 
         {/* =================================================
-            RODAPÉ
+            FOOTER
         ================================================= */}
 
-        <footer className="py-8 text-center">
+        <footer className="py-14 text-center">
 
-          <div className="mx-auto mb-4 flex items-center justify-center gap-3">
+          <div className="mx-auto flex items-center justify-center gap-4">
 
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-500/40" />
+            <span className="h-px w-12 bg-[#DEDAD2]" />
 
-            <span className="text-amber-500">
-              ✦
+            <span className="text-xs text-[#B08A45]">
+              S
             </span>
 
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500/40" />
+            <span className="h-px w-12 bg-[#DEDAD2]" />
 
           </div>
 
-          <p className="text-[10px] font-bold tracking-[0.35em] text-amber-500">
-            Loureiro.Co (86 9 9927 3849)
+          <p className="mt-5 text-[8px] font-black uppercase tracking-[0.45em] text-[#77736A]">
+            Sousa Barbearia
           </p>
 
-          <p className="mt-2 text-[9px] text-zinc-600">
-            Sistemas de Gestão e Cybersegurança
+          <p className="mt-2 text-[7px] uppercase tracking-[0.25em] text-[#A09B92]">
+            Loureiro.Co · Sistemas e Cibersegurança
           </p>
 
         </footer>
 
       </div>
+
     </main>
   );
 }
